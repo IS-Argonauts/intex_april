@@ -1,0 +1,71 @@
+.pricing-section {
+    background-color: #000 !important;
+    color: white !important;
+    padding: 6rem 1rem !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+  }
+  
+  .pricing-title {
+    font-weight: 700 !important;
+    text-align: center !important;
+    margin-bottom: 3rem !important;
+    font-size: 2.5rem !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+  }
+  
+  .pricing-cards-wrapper {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 2rem !important;
+  }
+  
+  .pricing-card-wrapper {
+    flex: 1 1 280px !important;
+    max-width: 320px !important;
+  }
+  
+  .pricing-card {
+    background-color: #252525 !important;
+    border-radius: 16px !important;
+    padding: 2rem !important;
+    color: white !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+    min-height: 180px !important;
+    position: relative !important;
+  }
+  
+  .highlight-card {
+    background-color: #383838 !important;
+  }
+  
+  .feature-list {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-top: 1rem !important;
+  }
+  
+  .feature-item {
+    margin-bottom: 0.5rem !important;
+    font-size: 1rem !important;
+    color: white !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+  }
+  
+  .ribbon {
+    position: absolute !important;
+    top: 16px !important;
+    right: 16px !important;
+    z-index: 2 !important;
+  }
+  
+  .ribbon span {
+    background-color: #FCD076 !important;
+    color: #000000 !important;
+    font-size: .9rem !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+  }
+  

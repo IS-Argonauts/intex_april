@@ -1,0 +1,111 @@
+.movie-details-container {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  color: #ffffff;
+  background-color: #0d0d0d;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media screen and (min-width: 768px) {
+  .movie-details-container {
+    flex-direction: row;
+    gap: 2rem;
+  }
+}
+
+.movie-poster {
+  width: 160px;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.movie-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.movie-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.movie-subinfo {
+  color: #bbbbbb;
+  font-size: 1rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.add-button,
+.watch-button {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-button {
+  background-color: #444;
+  color: white;
+}
+
+.add-button:hover {
+  background-color: #666;
+}
+
+.watch-button {
+  background-color: white;
+  color: black;
+}
+
+.watch-button:hover {
+  background-color: #ddd;
+}
+
+.description-box {
+  background-color: #1a1a1a;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-style: italic;
+  color: #e0e0e0;
+}
+
+.star-rating {
+  font-size: 2rem;
+  display: flex;
+  gap: 0.3rem;
+}
+
+.star {
+  cursor: pointer;
+  color: #444;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.star:hover {
+  transform: scale(1.1);
+}
+
+.star.active {
+  color: #facc15; /* Yellow-400 */
+}
+
+.not-found {
+  color: #ff6b6b;
+  text-align: center;
+  font-size: 1.2rem;
+}

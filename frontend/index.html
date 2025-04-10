@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/Cineniche.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      connect-src 'self' https://localhost:44307 https://localhost:44390 https://accounts.google.com https://oauth2.googleapis.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https://mlworkspace9652940464.blob.core.windows.net;
+      font-src 'self' https://fonts.gstatic.com data:;
+      frame-src 'self' https://accounts.google.com https://oauth2.googleapis.com;
+    ">
+    <title>CineNiche</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

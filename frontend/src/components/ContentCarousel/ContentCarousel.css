@@ -1,0 +1,44 @@
+.carousel-section {
+  font-family: 'Josefin Sans', sans-serif;
+  position: relative;
+  min-height: auto;
+  height: auto; /* ✅ This lets content size it */
+  color: white;
+  background-color: black;
+  overflow: hidden;
+}
+
+  .carousel-container {
+    padding: 60px 40px;
+  }
+  
+  .carousel-container h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  .carousel {
+    display: flex;
+    gap: 20px;
+    overflow-x: scroll;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE 10+ */
+  }
+  
+  .carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  .poster {
+    width: 200px;
+    height: 300px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+  }
+  
+  .poster:hover {
+    transform: scale(1.05);
+  }
+  

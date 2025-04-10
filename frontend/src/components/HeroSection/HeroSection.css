@@ -1,0 +1,30 @@
+.hero-container {
+    position: relative;
+    height: calc(100vh - 5rem); /* or 100vh if no navbar overlap */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    color: white;
+  }
+  .hero-title {
+    font-size: clamp(3rem, 8vw, 6rem); /* responsive mega text */
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+  
+  .hero-subtitle {
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
+    font-weight: 300;
+    max-width: 800px;
+    line-height: 1.5;
+  }
+  
