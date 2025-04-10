@@ -104,15 +104,34 @@ public class MovieController : ControllerBase
     [HttpPost("AddMovie")]
     public IActionResult AddMovie([FromBody] MoviesTitleDTO movieDto)
     {
+        if (!ModelState.IsValid)
+        {
+            // Log what exactly failed during model binding
+            var errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            return BadRequest(new
+            {
+                message = "Model binding failed",
+                errors
+            });
+        }
+
         int nextId = (_context.MoviesTitles.Max(m => (int?)m.Id) ?? 0) + 1;
         movieDto.Id = nextId;
         movieDto.ShowId = nextId.ToString();
         _context.MoviesTitles.Add(movieDto);
         _context.SaveChanges();
+
         return Ok(movieDto);
     }
 
-    [HttpPut("UpdateMovie")]
+
+    [HttpPut("UpdateMovie/{id}")]
     public IActionResult UpdateMovie(int id, [FromBody] MoviesTitleDTO movieDto)
     {
         var movie = _context.MoviesTitles.FirstOrDefault(m => m.Id == id);
