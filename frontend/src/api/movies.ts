@@ -8,23 +8,37 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const fetchAllMovies = async (
   page: number,
   pageSize: number,
-  search: string
+  searchQuery?: string
 ): Promise<{ movies: MoviesTitle[]; totalCount: number }> => {
-  const url = `${BASE_URL}/Movie/AllMovies?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`;
-  const response = await fetch(url, {
-    credentials: 'include',
-  });
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch movies');
+    if (searchQuery?.trim()) {
+      params.append('searchQuery', searchQuery.trim());
+    }
+
+    const url = `${BASE_URL}/Movie/AllMovies?${params.toString()}`;
+    const response = await fetch(url, {
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch movies');
+    }
+
+    const data = await response.json();
+
+    return {
+      movies: data.movies,
+      totalCount: data.totalCount,
+    };
+  } catch (error) {
+    console.error("Error in fetchAllMovies:", error);
+    throw error;
   }
-
-  const data = await response.json();
-
-  return {
-    movies: data.movies,
-    totalCount: data.totalCount, // replace with correct count if your backend returns this differently
-  };
 };
 
 // Fetch single movie by ID and parse genres

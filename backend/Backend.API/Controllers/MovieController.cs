@@ -28,31 +28,47 @@ public class MovieController : ControllerBase
 
     [HttpGet("AllMovies")]
     public IActionResult GetAllMovies([FromQuery] int page = 1, [FromQuery] int pageSize = 100,
-        [FromQuery] string searchQuery = null)
+        [FromQuery] string? searchQuery = null)
     {
         const string baseUrl = "https://mlworkspace9652940464.blob.core.windows.net/movieposters";
-        
+
         if (page < 1) page = 1;
         if (pageSize > 1000) pageSize = 1000;
 
         var skip = (page - 1) * pageSize;
-
         var query = _context.MoviesTitles.AsQueryable();
 
         if (!string.IsNullOrEmpty(searchQuery))
         {
-            searchQuery = searchQuery.ToLower();
-            query = query.Where(m => m.Title.ToLower().Contains(searchQuery));
+            var searchLower = searchQuery.ToLower();
+
+            // 🔍 Check for exact match
+            var exactMatch = _context.MoviesTitles
+                .FirstOrDefault(m => m.Title.ToLower() == searchLower);
+
+            if (exactMatch != null)
+            {
+                var result = new List<MoviesTitleDTO> {
+                    exactMatch.ToDto()
+                };
+
+                return Ok(new { movies = result, totalCount = 1 });
+            }
+
+            // 🔎 Apply partial match filter
+            query = query.Where(m => m.Title.ToLower().Contains(searchLower));
         }
+
+        var totalCount = query.Count();
 
         var movies = query
             .Skip(skip)
             .Take(pageSize)
             .AsEnumerable()
-            .Select(m => m.ToDto()) // Use your extension method here
+            .Select(m => m.ToDto())
             .ToList();
 
-        return Ok(new { movies, totalCount = 1 });
+        return Ok(new { movies, totalCount });
     }
 
     [HttpGet("AllUsers")]

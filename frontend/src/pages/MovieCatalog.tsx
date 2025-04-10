@@ -39,12 +39,14 @@ const MovieCatalog: React.FC = () => {
   const fetchedPages = useRef<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // 🔄 Reset on search query change
   useEffect(() => {
     setMovies([]);
-    fetchedPages.current.clear();
     setPage(1);
+    fetchedPages.current.clear();
   }, [debouncedSearch]);
 
+  // 📡 Fetch movies with search param
   const fetchMovies = useCallback(async () => {
     const key = `${page}-${debouncedSearch}`;
     if (fetchedPages.current.has(key)) return;
@@ -53,7 +55,9 @@ const MovieCatalog: React.FC = () => {
     try {
       const response = await fetchAllMovies(page, 20, debouncedSearch);
       if (response && Array.isArray(response.movies)) {
-        setMovies((prev) => (page === 1 ? response.movies : [...prev, ...response.movies]));
+        setMovies((prev) =>
+          page === 1 ? response.movies : [...prev, ...response.movies]
+        );
         fetchedPages.current.add(key);
       }
     } catch {
@@ -63,6 +67,7 @@ const MovieCatalog: React.FC = () => {
     }
   }, [page, debouncedSearch]);
 
+  // 🔁 Infinite scroll
   useEffect(() => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
@@ -95,6 +100,7 @@ const MovieCatalog: React.FC = () => {
           Movie Catalog
         </Typography>
 
+        {/* 🔍 Search Input */}
         <Box
           sx={{
             display: 'flex',
@@ -179,7 +185,7 @@ const MovieCatalog: React.FC = () => {
                   target.src =
                     'https://mlworkspace9652940464.blob.core.windows.net/movieposters/placeHolder.jpg';
 
-                  setBrokenImages((prev) => new Set(prev).add(String(movie.id)));
+                  setBrokenImages((prev) => new Set(prev).add(String(movie.showId)));
                 }}
               />
               {brokenImages.has(String(movie.showId)) && (
