@@ -10,6 +10,8 @@ import MovieDetailsPage from './pages/MovieDetailsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import PrivateRoute from './components/PrivateRoute';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminPage from './pages/AdminPage';
+import HomePage from './pages/HomePage';
 // import AdminPage from './pages/AdminPage';
 
 
@@ -23,12 +25,12 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
-          {/* <Route path="/home" element={
+          <Route path="/home" element={
             <PrivateRoute>
               <HomePage />
             </PrivateRoute>
             } 
-          /> */}
+          />
           <Route path="/catalog" element={
             <ProtectedRoute>
               <MovieCatalog />
@@ -45,11 +47,11 @@ function App() {
               <MemberInfo />
             </ProtectedRoute>
             } />
-          {/* <Route path="/admin" element={
+          <Route path="/admin" element={
             <ProtectedRoute>
               <AdminPage />
             </ProtectedRoute>
-          } /> */}
+          } />
         </Routes>
       </Router>
       <CookieConsentBanner />

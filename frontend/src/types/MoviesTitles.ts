@@ -44,5 +44,6 @@ export interface MoviesTitle {
     criticallyAcclaimed?: string;
     id?: number;
     genre?: string;
+    posterUrl?: string;
   }
   

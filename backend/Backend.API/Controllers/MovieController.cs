@@ -52,7 +52,7 @@ public class MovieController : ControllerBase
             .Select(m => m.ToDto()) // Use your extension method here
             .ToList();
 
-        return Ok(movies);
+        return Ok(new { movies, totalCount = 1 });
     }
 
     [HttpGet("AllUsers")]

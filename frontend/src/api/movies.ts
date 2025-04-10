@@ -9,7 +9,7 @@ export const fetchAllMovies = async (
   page: number,
   pageSize: number,
   search: string
-): Promise<MoviesTitle[]> => {
+): Promise<{ movies: MoviesTitle[]; totalCount: number }> => {
   const url = `${BASE_URL}/Movie/AllMovies?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`;
   const response = await fetch(url, {
     credentials: 'include',
@@ -19,7 +19,12 @@ export const fetchAllMovies = async (
     throw new Error('Failed to fetch movies');
   }
 
-  return await response.json();
+  const data = await response.json();
+
+  return {
+    movies: data.movies,
+    totalCount: data.totalCount, // replace with correct count if your backend returns this differently
+  };
 };
 
 // Fetch single movie by ID and parse genres
@@ -35,7 +40,7 @@ export const fetchMovieByShowId = async (id: number): Promise<MoviesTitle> => {
   const data = await response.json();
 
   const genres: string[] = Object.entries(data)
-    .filter(([key, value]) => typeof value === 'number' && value === 1)
+    .filter(([, value]) => typeof value === 'number' && value === 1)
     .map(([key]) => key.replace(/_/g, ' ').toLowerCase());
 
   return {

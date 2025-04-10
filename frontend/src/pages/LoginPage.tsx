@@ -9,6 +9,7 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import '../components/Login.css'
 
 import Header from '../components/LandingNavbar/LandingNavbar';
 import Footer from '../components/Footer/Footer';
