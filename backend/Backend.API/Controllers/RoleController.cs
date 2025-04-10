@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace RootkitAuth.API.Controllers;
 
-[Microsoft.AspNetCore.Components.Route("[controller]")]
+[Route("[controller]")]
 [ApiController]
 [Authorize(Roles = "administrator")]
 public class RoleController : Controller
@@ -16,6 +16,14 @@ public class RoleController : Controller
     {
         _roleManager = roleManager;
         _userManager = userManager;
+    }
+
+    [HttpGet("IsAdmin")]
+    // [Authorize(Roles = "administrator")]
+    public async Task<bool> GetIsAdmin()
+    {
+        Console.WriteLine("This method passes, so you must be an administrator.");
+        return true;
     }
     
     [HttpPost("AddRole")]
