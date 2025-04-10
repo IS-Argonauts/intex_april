@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     port: 3000,
     headers: {
+      
       // 'Content-Security-Policy':
       //   "default-src 'self'; " +
       //   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com; " +

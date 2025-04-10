@@ -8,7 +8,6 @@ import MemberInfo from './pages/MemberInfo';
 import MovieCatalog from './pages/MovieCatalog';
 import MovieDetailsPage from './pages/MovieDetailsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import PrivateRoute from './components/PrivateRoute';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
 import HomePage from './pages/HomePage';
@@ -26,9 +25,9 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
           <Route path="/home" element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <HomePage />
-            </PrivateRoute>
+            </ProtectedRoute>
             } 
           />
           <Route path="/catalog" element={

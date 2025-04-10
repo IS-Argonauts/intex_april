@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import ClearIcon from '@mui/icons-material/Clear';
+import MovieFilters from '../components/MovieFilters';
 
 function useDebounce<T>(value: T, delay = 500): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -31,6 +32,13 @@ const MovieCatalog: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 400);
+
+  // 🎭 Genre filter state
+  const [genres] = useState<string[]>(['Action', 'Adventure', 'Anime', 'British','Comedies', 'Children', 
+                                        'Crime', 'Documentaries', 'Docuseries', 'Drama', 'Family Movies','Fantasy', 
+                                        'Horror', 'International', 'Kids', 'Language', 'Musicals', 'Nature', 
+                                        'Reality TV', 'Romantic', 'Spirituality', 'Thrillers']);
+  const [genre, setGenre] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -46,6 +54,14 @@ const MovieCatalog: React.FC = () => {
     fetchedPages.current.clear();
   }, [debouncedSearch]);
 
+  // 🔄 Reset on genre change
+  useEffect(() => {
+    setMovies([]);
+    setPage(1);
+    fetchedPages.current.clear();
+  }, [genre]);
+
+
   // 📡 Fetch movies with search param
   const fetchMovies = useCallback(async () => {
     const key = `${page}-${debouncedSearch}`;
@@ -53,7 +69,7 @@ const MovieCatalog: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetchAllMovies(page, 20, debouncedSearch);
+      const response = await fetchAllMovies(page, 20, debouncedSearch, genre || undefined);
       if (response && Array.isArray(response.movies)) {
         setMovies((prev) =>
           page === 1 ? response.movies : [...prev, ...response.movies]
@@ -96,10 +112,11 @@ const MovieCatalog: React.FC = () => {
     <>
       <MainNavbar />
       <Box sx={{ padding: 4 }}>
+      <div style={{ textAlign: 'center' }}>
         <Typography variant="h4" gutterBottom>
           Movie Catalog
         </Typography>
-
+      </div>
         {/* 🔍 Search Input */}
         <Box
           sx={{
@@ -140,6 +157,8 @@ const MovieCatalog: React.FC = () => {
             </IconButton>
           )}
         </Box>
+        <br />
+        <MovieFilters genres={genres} genre={genre || ''} setGenre={setGenre} />
 
         <br /><br />
 
@@ -155,7 +174,7 @@ const MovieCatalog: React.FC = () => {
           {movies.map((movie) => (
             <Card
               key={movie.showId}
-              onClick={() => navigate(`/movies/${movie.showId}`)}
+              onClick={() => navigate(`/movies/${movie.id}`)}
               sx={{
                 width: 260,
                 height: 400,
