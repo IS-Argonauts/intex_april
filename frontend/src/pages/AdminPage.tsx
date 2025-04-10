@@ -1,10 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  IconButton,
-} from '@mui/material';
+import { Box, Typography, Button, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MainNavbar from '../components/MainNavbar/MainNavbar';
@@ -12,8 +7,10 @@ import CinePagination from '../components/CinePagination';
 import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import ClearIcon from '@mui/icons-material/Clear';
-import { fetchAllMovies } from '../api/movies';
-import { MoviesTitle as Movie } from '../types/MoviesTitles'
+import { deleteMovie, fetchAllMovies } from '../api/movies';
+import { MoviesTitle as Movie, MoviesTitle } from '../types/MoviesTitles';
+import NewMovieForm from '../components/NewMovieForm';
+import EditMovieForm from '../components/EditMovieForm';
 
 function useDebounce<T>(value: T, delay = 500): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -37,6 +34,8 @@ function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 400);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingMovie, setEditingMovie] = useState<MoviesTitle | null>(null);
 
   useEffect(() => {
     const loadMovies = async () => {
@@ -70,37 +69,78 @@ function AdminPage() {
   return (
     <>
       <MainNavbar />
-    <Box sx={{ padding: 4 }}>
-      <Box
-        sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        mb: 3,
-        }}
-      >
-        <Typography variant="h4">Admin Movie Manager</Typography>
-        <Button
-        variant="contained"
-        sx={{
-          backgroundColor: '#FCD076',
-          color: '#000000',
-          '&:hover': {
-            backgroundColor: '#e6ba64',
-          },
-        }}
+      <Box sx={{ padding: 4 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3,
+          }}
         >
-        ➕ Add New Movie
-        </Button>
-      </Box>
-      <Box
-        sx={{
-        display: 'flex',
-        alignItems: 'center',
-        backgroundColor: '#1f1f1f',
-        borderRadius: '24px',
-        padding: '4px 12px',
-        border: '1px solid #555',
+          <Typography variant="h4">Admin Movie Manager</Typography>
+          {!showForm && (
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: '#FCD076',
+                color: '#000000',
+                '&:hover': {
+                  backgroundColor: '#e6ba64',
+                },
+              }}
+              onClick={() => {
+                setShowForm(true);
+                setEditingMovie(null); // 👈 close edit form if open
+              }}
+            >
+              ➕ Add New Movie
+            </Button>
+          )}
+        </Box>
+        {showForm && (
+          <Box sx={{ mb: 3 }}>
+            <NewMovieForm
+              onSuccess={() => {
+                setShowForm(false);
+                fetchAllMovies(pageNum, pageSize, debouncedSearch).then(
+                  (data) => {
+                    setMovies(data.movies);
+                    setTotalCount(data.totalCount);
+                    setTotalPages(Math.ceil(data.totalCount / pageSize));
+                  }
+                );
+              }}
+              onCancel={() => setShowForm(false)}
+            />
+          </Box>
+        )}
+
+        {editingMovie && (
+          <EditMovieForm
+            movie={editingMovie}
+            onCancel={() => setEditingMovie(null)}
+            onSuccess={() => {
+              setEditingMovie(null);
+              fetchAllMovies(pageNum, pageSize, debouncedSearch).then(
+                (data) => {
+                  setMovies(data.movies);
+                  setTotalCount(data.totalCount);
+                  setTotalPages(Math.ceil(data.totalCount / pageSize));
+                }
+              );
+            }}
+          />
+        )}
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: '#1f1f1f',
+            borderRadius: '24px',
+            padding: '4px 12px',
+            border: '1px solid #555',
             width: '320px',
             margin: 'auto',
           }}
@@ -182,11 +222,40 @@ function AdminPage() {
                     backgroundColor: 'rgba(252, 208, 118, 0.1)',
                   },
                 }}
+                onClick={() => setEditingMovie(movie)}
               >
                 <EditIcon />
               </IconButton>
 
-              <IconButton color="error">
+              <IconButton
+                color="error"
+                onClick={async () => {
+                  if (movie.id === undefined || movie.id === null) {
+                    console.error('Movie ID is missing');
+                    return;
+                  }
+
+                  const confirmDelete = window.confirm(
+                    `Are you sure you want to delete "${movie.title}"?`
+                  );
+                  if (!confirmDelete) return;
+
+                  try {
+                    await deleteMovie(movie.id);
+                    // Refresh the list
+                    const data = await fetchAllMovies(
+                      pageNum,
+                      pageSize,
+                      debouncedSearch
+                    );
+                    setMovies(data.movies);
+                    setTotalCount(data.totalCount);
+                    setTotalPages(Math.ceil(data.totalCount / pageSize));
+                  } catch (error) {
+                    console.error('Failed to delete movie:', error);
+                  }
+                }}
+              >
                 <DeleteIcon />
               </IconButton>
             </Box>
