@@ -1,9 +1,15 @@
 // hooks.ts
 import { useEffect, useState } from 'react';
-import { fetchAllMovies, fetchAllRatings, fetchAllUsers, fetchMovieCount, Rating, User } from '../api/movies';
-import { Movie } from '../types/Movie';
-import { parseMovieFromAPI } from '../utils/parseMovieFromAPI'
-
+import {
+  fetchAllMovies,
+  fetchAllRatings,
+  fetchAllUsers,
+  fetchMovieCount,
+  Rating,
+  User,
+} from '../api/movies';
+import { MoviesTitle } from '../types/MoviesTitles';
+import { parseMovieFromAPI } from '../utils/parseMovieFromAPI';
 
 export const useAllRatings = () => {
   const [ratings, setRatings] = useState<Rating[]>([]);
@@ -13,7 +19,7 @@ export const useAllRatings = () => {
   useEffect(() => {
     fetchAllRatings()
       .then(setRatings)
-      .catch(err => setError(err.message))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -28,15 +34,19 @@ export const useAllUsers = () => {
   useEffect(() => {
     fetchAllUsers()
       .then(setUsers)
-      .catch(err => setError(err.message))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
   return { users, loading, error };
 };
 
-export const useAllMovies = (page: number, pageSize: number, search: string) => {
-  const [movies, setMovies] = useState<Movie[]>([]);
+export const useAllMovies = (
+  page: number,
+  pageSize: number,
+  search: string
+) => {
+  const [movies, setMovies] = useState<MoviesTitle[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +71,3 @@ export const useAllMovies = (page: number, pageSize: number, search: string) => 
 
   return { movies, totalCount, loading, error };
 };
-  
-  
-  
