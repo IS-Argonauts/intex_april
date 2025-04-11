@@ -27,7 +27,14 @@ function App() {
           <Route path="/catalog" element={<MovieCatalog />} />
           <Route path="/movies/:id" element={<MovieDetailsPage />} />
           <Route path="/member" element={<MemberInfo />} />
-          <Route path="/admin" element={<AdminPage />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
       <CookieConsentBanner />
