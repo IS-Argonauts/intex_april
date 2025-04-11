@@ -8,6 +8,7 @@ import {
   Select,
   InputLabel,
   FormControl,
+  SelectChangeEvent,
 } from '@mui/material';
 import { MoviesTitle } from '../types/MoviesTitles';
 import { addMovie, updateMovie } from '../api/movies';
@@ -89,6 +90,11 @@ const NewMovieForm: React.FC<NewMovieFormProps> = ({
     setFormData((prev) => ({ ...prev, [name as string]: value }));
   };
 
+  const handleSelectChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name as string]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -134,7 +140,6 @@ const NewMovieForm: React.FC<NewMovieFormProps> = ({
           {error}
         </Typography>
       )}
-
       <TextField
         label="Title"
         name="title"
@@ -195,10 +200,9 @@ const NewMovieForm: React.FC<NewMovieFormProps> = ({
         <Select
           name="genre"
           value={formData.genre}
-          onChange={handleChange}
+          onChange={handleSelectChange}
           sx={{ color: 'white', backgroundColor: '#2a2a2a' }}
         >
-          <MenuItem value="">Select Genre</MenuItem>
           <MenuItem value="action">Action</MenuItem>
           <MenuItem value="comedy">Comedy</MenuItem>
           <MenuItem value="drama">Drama</MenuItem>
