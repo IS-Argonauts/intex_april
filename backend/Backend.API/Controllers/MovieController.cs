@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RootkitAuth.API.Data;
@@ -12,6 +13,7 @@ namespace RootkitAuth.API.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[Authorize]
 public class MovieController : ControllerBase
 {
     private MoviesDbContext _context;

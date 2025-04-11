@@ -65,11 +65,26 @@ builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, CustomUser
 // Cookie Settings
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    // 🔐 Cookie Settings
     options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.Name = ".AspNetCore.Identity.Application";
-    options.LoginPath = "/login";
+    options.Cookie.SameSite = SameSiteMode.None; // Allow cross-site (e.g., React + API on different domains)
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.Name = ".AspNetCore.Identity.Application";
+    options.LoginPath = "/login"; // Optional if you're using custom routes
+
+    // 🚫 Prevent redirects for API calls — return 401 instead
+    options.Events.OnRedirectToLogin = context =>
+    {
+        var path = context.Request.Path;
+        if (path.StartsWithSegments("/api") || path.StartsWithSegments("/pingauth"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 
 // CORS
