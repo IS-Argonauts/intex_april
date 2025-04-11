@@ -14,6 +14,8 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/LandingNavbar/LandingNavbar';
 import Footer from '../components/Footer/Footer';
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -85,7 +87,7 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch('https://localhost:44307/auth/register', {
+      const response = await fetch(`${BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

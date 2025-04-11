@@ -14,6 +14,7 @@ import '../components/Login.css';
 
 import Header from '../components/BasicHeader';
 import Footer from '../components/Footer/Footer';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -32,7 +33,7 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    const loginUrl = 'https://localhost:44307/login?useSessionCookies=true';
+    const loginUrl = `${BASE_URL}login?useSessionCookies=true`;
 
     try {
       const loginRes = await fetch(loginUrl, {
@@ -51,7 +52,7 @@ const LoginPage: React.FC = () => {
         throw new Error(errorData?.message || 'Invalid email or password.');
       }
 
-      const authCheck = await fetch('https://localhost:44307/pingauth', {
+      const authCheck = await fetch(`${BASE_URL}/pingauth`, {
         credentials: 'include',
       });
 
@@ -69,7 +70,7 @@ const LoginPage: React.FC = () => {
   const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
     setError('');
     try {
-      const res = await fetch('https://localhost:44307/google-login', {
+      const res = await fetch(`${BASE_URL}/google-login`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -78,7 +79,7 @@ const LoginPage: React.FC = () => {
 
       if (!res.ok) throw new Error('Google login failed');
 
-      const authCheck = await fetch('https://localhost:44307/pingauth', {
+      const authCheck = await fetch(`${BASE_URL}/pingauth`, {
         credentials: 'include',
       });
 
