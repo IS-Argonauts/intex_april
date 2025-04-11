@@ -101,7 +101,7 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            policy.WithOrigins("https://mango-beach-0bd45480f.6.azurestaticapps.net")
+            policy.WithOrigins("https://intex-april.vercel.app")
                 .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
