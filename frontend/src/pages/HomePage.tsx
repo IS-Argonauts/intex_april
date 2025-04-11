@@ -2,17 +2,13 @@ import { useState, useEffect } from 'react';
 import Footer from '../components/Footer/Footer';
 import MainNavbar from '../components/MainNavbar/MainNavbar';
 import HeroBanner from '../components/HeroBanner';
-import MovieFilters from '../components/MovieFilters';
 import RecommenderCarousel from '../components/RecommenderCarousel';
 import { MoviesTitle as Movie } from '../types/MoviesTitles';
 import { fetchMovieRecommendations } from '../api/recommender';
 
 const HomePage: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [genre, setGenre] = useState('');
-  const [director, setDirector] = useState('');
-  const [genres, setGenres] = useState<string[]>([]);
-  const [directors, setDirectors] = useState<string[]>([]);
+  const [, setGenres] = useState<string[]>([]);
+  const [, setDirectors] = useState<string[]>([]);
 
   const [likesMovies, setLikesMovies] = useState<Movie[]>([]);
   const [dramaMovies, setDramaMovies] = useState<Movie[]>([]);

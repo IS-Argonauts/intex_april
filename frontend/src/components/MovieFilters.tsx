@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 
 interface MovieFiltersProps {
   genres: string[];
@@ -13,7 +12,6 @@ const MovieFilters: React.FC<MovieFiltersProps> = ({
   genre,
   setGenre,
 }) => {
-  const navigate = useNavigate();
 
   return (
     <Box sx={{ px: 3, mb: 5 }}>

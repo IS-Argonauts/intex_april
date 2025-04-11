@@ -34,6 +34,7 @@ export default function MainNavbar() {
         <a href="/home" className={location.pathname === '/home' ? 'nav-tab active-tab' : 'nav-tab'}>Home</a>
         <a href="/catalog" className={location.pathname === '/catalog' ? 'nav-tab active-tab' : 'nav-tab'}>Catalog</a>
         <a href="/member" className={location.pathname === '/member' ? 'nav-tab active-tab' : 'nav-tab'}>Profile</a>
+        <a href="/admin" className={location.pathname === '/admin' ? 'nav-tab active-tab' : 'nav-tab'}>Admin</a>
         <Logout>
           <LogoutIcon /> Sign out
         </Logout>
