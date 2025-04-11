@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Scripting;
 using RootkitAuth.API.Data;
 using RootkitAuth.API.Extensions;
 using RootkitAuth.API.Models;
@@ -132,7 +133,32 @@ public class MovieController : ControllerBase
         var users = _context.MoviesUsers.ToList();
         return Ok(users);
     }
-    
+
+    [HttpPost("register")]
+    public IActionResult Register([FromBody] RegisterUserDTO dto)
+    {
+        if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.Password))
+            return BadRequest(new { message = "Email and password are required." });
+
+        if (_context.MoviesUsers.Any(u => u.Email == dto.Email))
+            return Conflict(new { message = "Email already exists." });
+
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+        var user = new MoviesUser
+        {
+            Email = dto.Email,
+            Password = hashedPassword,
+            Role = "user" // 👈 secure default
+        };
+
+        _context.MoviesUsers.Add(user);
+        _context.SaveChanges();
+
+        return Ok(new { message = "Registration successful!" });
+    }
+
+
     [HttpGet("SingleMovie")]
     public IActionResult GetSingleMovie([FromQuery] int id)
     {

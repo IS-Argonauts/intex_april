@@ -9,7 +9,7 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import '../components/Login.css'
+import '../components/Login.css';
 
 import Header from '../components/LandingNavbar/LandingNavbar';
 import Footer from '../components/Footer/Footer';
@@ -157,7 +157,11 @@ const LoginPage: React.FC = () => {
               {error}
             </Typography>
 
-            <Typography variant="body2" align="center" sx={{ mt: 4 }}>
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{ mt: 4, color: 'white' }}
+            >
               Don’t have an account?{' '}
               <Box
                 component="span"

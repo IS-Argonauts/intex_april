@@ -71,7 +71,7 @@ public class RoleController : Controller
 
         return StatusCode(500, "An error occurred while assigning the role.");
     }
-    
+
     [ApiController]
     [Route("auth")]
     public class AuthController : ControllerBase

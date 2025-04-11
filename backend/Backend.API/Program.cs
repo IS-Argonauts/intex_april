@@ -4,39 +4,62 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RootkitAuth.API.Data;
+using RootkitAuth.API.Models;
 using RootkitAuth.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        options.JsonSerializerOptions.WriteIndented = true; // Optional: make it pretty
-    });
+//builder.Services.AddControllers()
+//    .AddJsonOptions(options =>
+//    {
+//        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//        options.JsonSerializerOptions.WriteIndented = true; // Optional: make it pretty
+//    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/auth/login"; // Update this to your actual login path
+});
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // 🔥 Add this
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
+
+
+
 builder.Services.AddDbContext<MoviesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("CompetitionConnection")));
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>  
-    options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>  
+//    options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
+
+//builder.Services.AddIdentity< IdentityUser, IdentityRole>()
+//    .AddEntityFrameworkStores<ApplicationDbContext>()
+//    .AddDefaultTokenProviders();
+
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<MoviesDbContext>()
+    .AddDefaultTokenProviders();
+
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+
 
 // builder.Services.AddIdentityApiEndpoints<IdentityUser>()  
 //     .AddEntityFrameworkStores<MoviesDbContext>();
 
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, Microsoft.AspNetCore.Identity.UI.Services.NoOpEmailSender>();
-builder.Services.AddTransient<IEmailSender<IdentityUser>, EmailSenderAdapter>();
+builder.Services.AddTransient<IEmailSender<ApplicationUser>, EmailSenderAdapter>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -44,7 +67,9 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.ClaimsIdentity.UserNameClaimType = ClaimTypes.Email; // Ensure email is stored in claims
 });
 
-builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, CustomUserClaimsPrincipalFactory>();
+//builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, CustomUserClaimsPrincipalFactory>();
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomUserClaimsPrincipalFactory>();
+
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -60,7 +85,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.None; // Change after adding https for prod (change to Secure)
     options.Cookie.Name = ".AspNetCore.Identity.Application";
-    options.LoginPath = "/login";
+    options.LoginPath = "/auth/login";
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
@@ -103,12 +128,28 @@ app.UseAuthorization();
 app.MapGet("/", () => Results.Ok("Welcome to the public home page!"));
 
 app.MapControllers();
-app.MapIdentityApi<IdentityUser>();
+//app.MapIdentityApi<IdentityUser>();
 
-app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> signInManager) =>
+//app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> signInManager) =>
+//{
+//    await signInManager.SignOutAsync();
+
+//    // Ensure authentication cookie is removed
+//    context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
+//    {
+//        HttpOnly = true,
+//        Secure = true,
+//        SameSite = SameSiteMode.None
+//    });
+
+//    return Results.Ok(new { message = "Logout successful" });
+//}).RequireAuthorization();
+app.MapIdentityApi<ApplicationUser>();
+
+app.MapPost("/logout", async (HttpContext context, SignInManager<ApplicationUser> signInManager) =>
 {
     await signInManager.SignOutAsync();
-    
+
     // Ensure authentication cookie is removed
     context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
     {
@@ -119,6 +160,7 @@ app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> s
 
     return Results.Ok(new { message = "Logout successful" });
 }).RequireAuthorization();
+
 
 
 app.MapGet("/pingauth", (ClaimsPrincipal user) =>
@@ -132,4 +174,14 @@ app.MapGet("/pingauth", (ClaimsPrincipal user) =>
     return Results.Json(new { email = email }); // Return as JSON
 }).RequireAuthorization();
 
-app.Run();
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine("🔥 Startup Exception:");
+    Console.WriteLine(ex.Message);
+    Console.WriteLine(ex.InnerException?.Message);
+    throw;
+}
