@@ -5,7 +5,7 @@ const MovieCardSkeleton: React.FC = () => {
   return (
     <Card
       sx={{
-        width: 260,
+        width: 2300,
         height: 400,
         backgroundColor: '#1A1A1A',
         overflow: 'hidden',
@@ -33,7 +33,12 @@ const MovieCardSkeleton: React.FC = () => {
           padding: '4px',
         }}
       >
-        <Skeleton variant="text" width="80%" height={14} sx={{ bgcolor: '#333' }} />
+        <Skeleton
+          variant="text"
+          width="80%"
+          height={14}
+          sx={{ bgcolor: '#333' }}
+        />
       </Box>
     </Card>
   );

@@ -2,91 +2,123 @@ import React from 'react';
 import {
   Box,
   Typography,
-  MenuItem,
+  IconButton,
+  Button,
   Select,
-  Pagination,
-  Stack,
+  MenuItem,
 } from '@mui/material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-interface CinePaginationProps {
+interface Props {
   currentPage: number;
   totalPages: number;
   pageSize: number;
-  onPageChange: (newPage: number) => void;
-  onPageSizeChange: (newSize: number) => void;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
 }
 
-const CinePagination: React.FC<CinePaginationProps> = ({
+const CinePagination: React.FC<Props> = ({
   currentPage,
   totalPages,
   pageSize,
   onPageChange,
   onPageSizeChange,
 }) => {
-  if (totalPages <= 1) return null;
+  const getVisiblePages = () => {
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+  
+    let start = Math.max(1, currentPage - half);
+    let end = start + maxVisible - 1;
+  
+    if (end >= totalPages) {
+      end = totalPages - 1;
+      start = Math.max(1, end - maxVisible + 1);
+    }
+  
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  };
+  
+  const visiblePages = getVisiblePages();
+  
 
   return (
-    <Box sx={{ textAlign: 'center', mt: 4 }}>
-      <Typography variant="body1" sx={{ mb: 1, color: '#FCD076' }}>
-        Page {currentPage} of {totalPages}
+    <Box
+      sx={{
+        mt: 4,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 2,
+        color: '#FCD076',
+      }}
+    >
+      <Typography>
+        Page {currentPage} of {totalPages - 1}
       </Typography>
 
-      <Stack direction="row" justifyContent="center" sx={{ mb: 2 }}>
-        <Pagination
-          count={totalPages}
-          page={currentPage}
-          onChange={(_, value) => onPageChange(value)}
-          siblingCount={1}
-          boundaryCount={1}
-          showFirstButton
-          showLastButton
-          variant="outlined"
-          shape="rounded"
-          sx={{
-            '& .MuiPaginationItem-root': {
-              color: '#FFFFFF',
-              borderColor: '#FCD076',
-            },
-            '& .MuiPaginationItem-root:hover': {
-              backgroundColor: '#FCD076',
-              color: '#000000',
-            },
-            '& .Mui-selected': {
-              backgroundColor: '#FCD076 !important',
-              color: '#000000',
-              borderColor: '#FCD076',
-            },
-          }}
-        />
-      </Stack>
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <IconButton
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          <ChevronLeftIcon sx={{ color: '#FCD076' }} />
+        </IconButton>
 
-      <Box sx={{ mt: 1 }}>
-        <Typography component="label" sx={{ mr: 1, color: '#FCD076' }}>
+        {visiblePages.map((page) => (
+          <Button
+            key={page}
+            onClick={() => onPageChange(page)}
+            sx={{
+              minWidth: 36,
+              backgroundColor: currentPage === page ? '#FCD076' : 'transparent',
+              color: currentPage === page ? '#000' : '#FCD076',
+              border: '1px solid #FCD076',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#fcd07633',
+              },
+            }}
+          >
+            {page}
+          </Button>
+        ))}
+
+        <IconButton
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages - 1}
+        >
+          <ChevronRightIcon sx={{ color: '#FCD076' }} />
+        </IconButton>
+      </Box>
+
+      <Box>
+        <Typography
+          component="span"
+          sx={{ color: '#FCD076', mr: 1, fontWeight: 'bold' }}
+        >
           Results per page:
         </Typography>
         <Select
           value={pageSize}
-          onChange={(e) => {
-            onPageSizeChange(Number(e.target.value));
-            onPageChange(1);
-          }}
+          onChange={(e) => onPageSizeChange(Number(e.target.value))}
           sx={{
-            color: '#FFFFFF',
+            color: '#FCD076',
             borderColor: '#FCD076',
-            '& .MuiOutlinedInput-notchedOutline': {
+            '.MuiOutlinedInput-notchedOutline': {
               borderColor: '#FCD076',
             },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#FCD076',
-            },
-            '& .MuiSvgIcon-root': {
+            '.MuiSvgIcon-root': {
               color: '#FCD076',
             },
           }}
         >
-          <MenuItem value={5}>5</MenuItem>
-          <MenuItem value={10}>10</MenuItem>
-          <MenuItem value={20}>20</MenuItem>
+          {[5, 10, 20, 50].map((size) => (
+            <MenuItem key={size} value={size}>
+              {size}
+            </MenuItem>
+          ))}
         </Select>
       </Box>
     </Box>

@@ -4,7 +4,7 @@
   padding: 2rem;
   color: #ffffff;
   background-color: #0d0d0d;
-  max-width: 1200px;
+  max-width: 1500px;
   margin: 0 auto;
 }
 
@@ -16,7 +16,7 @@
 }
 
 .movie-poster {
-  width: 160px;
+  width: 300px;
   height: auto;
   border-radius: 10px;
   object-fit: cover;
@@ -93,7 +93,9 @@
 .star {
   cursor: pointer;
   color: #444;
-  transition: transform 0.3s ease, color 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease;
 }
 
 .star:hover {

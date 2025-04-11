@@ -220,7 +220,7 @@ function AdminPage() {
                   }}
                 />
                 <Box className="admin-movie-info">
-                  <Typography variant="subtitle1">{movie.title}</Typography>
+                  <Typography variant="h5">{movie.title}</Typography>
                   <Typography variant="caption" sx={{ opacity: 0.7 }}>
                     {movie.releaseYear ?? 'Year N/A'} ·{' '}
                     {movie.director ?? 'Unknown'}
@@ -248,21 +248,21 @@ function AdminPage() {
           </Box>
         ))}
 
-        {/* Pagination */}
         <CinePagination
           currentPage={pageNum}
           totalPages={totalPages}
           pageSize={pageSize}
           onPageChange={(nextPage) => {
-            // Clamp so it never exceeds totalPages - 1
-            if (nextPage >= totalPages) return; // 👈 hard stop at last page
+            // Ensure we never exceed totalPages - 1
+            if (nextPage < 1 || nextPage >= totalPages) return;
             setPageNum(nextPage);
           }}
           onPageSizeChange={(newSize) => {
             setPageSize(newSize);
-            setPageNum(1);
+            setPageNum(1); // reset to first page
           }}
         />
+
 
         {/* Delete Dialog */}
         <Dialog

@@ -16,7 +16,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, brokenImages, setBrokenIma
     <Card
       onClick={() => navigate(`/movies/${movie.id}`)}
       sx={{
-        width: 260,
+        width: 2000,
         height: 400,
         position: 'relative',
         overflow: 'hidden',
@@ -81,7 +81,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, brokenImages, setBrokenIma
         sx={{
           position: 'absolute',
           bottom: 0,
-          width: '100%',
+          width: '10%',
           height: '10%',
           backgroundColor: 'rgba(0,0,0,1)',
           color: 'white',
