@@ -11,29 +11,26 @@ import {
   Select,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import '../components/Login.css';
-
-import Header from '../components/BasicHeader';
+import Header from '../components/LandingNavbar/LandingNavbar';
 import Footer from '../components/Footer/Footer';
-
-const Register: React.FC = () => {
+ 
+const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | string[]>('');
   const navigate = useNavigate();
-
+ 
   const handleChange = (
     e:
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
       | React.ChangeEvent<{ name?: string; value: unknown }>
+      | any
   ) => {
-    const target = e.target as HTMLInputElement;
-    const { name, value } = target;
-
+    const { name, value } = e.target;
     switch (name) {
       case 'email':
         setEmail(value);
@@ -55,36 +52,30 @@ const Register: React.FC = () => {
         break;
     }
   };
-
+ 
   const validateForm = () => {
     if (!email || !name || !age || !gender || !password || !confirmPassword) {
       return 'Please fill in all fields.';
     }
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return 'Please enter a valid email address.';
     }
-
     if (/\d/.test(name)) {
       return 'Name cannot contain numbers.';
     }
-
     const parsedAge = parseInt(age, 10);
     if (isNaN(parsedAge) || parsedAge < 16) {
       return 'You must be at least 16 years old.';
     }
-
     if (password.length < 13) {
       return 'Password must be at least 13 characters long.';
     }
-
     if (password !== confirmPassword) {
       return 'Passwords do not match.';
     }
-
     return '';
   };
-
+ 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const validationError = validateForm();
@@ -92,9 +83,9 @@ const Register: React.FC = () => {
       setError(validationError);
       return;
     }
-
+ 
     try {
-      const response = await fetch('https://localhost:44307/register', {
+      const response = await fetch('https://localhost:44307/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -105,12 +96,19 @@ const Register: React.FC = () => {
           password,
         }),
       });
-
+ 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || 'Error registering.');
+        if (Array.isArray(data.errors)) {
+          setError(
+            data.errors.map((e: any) => e.description || JSON.stringify(e))
+          );
+        } else {
+          throw new Error(data.message || 'Error registering.');
+        }
+        return;
       }
-
+ 
       setError('');
       navigate('/login');
     } catch (err: any) {
@@ -118,40 +116,64 @@ const Register: React.FC = () => {
       setError(err.message || 'Error registering.');
     }
   };
-
+ 
   return (
     <>
       <Header />
-      <Box className="auth-container">
+      <Box
+        sx={{
+          minHeight: '120vh',
+          backgroundColor: '#1f1f1f',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          pt: 6,
+          pb: 6,
+        }}
+      >
         <Container maxWidth="sm">
-          <Box component="form" onSubmit={handleSubmit} className="auth-box">
-            <Typography variant="h4" mb={3} fontWeight={600}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              backgroundColor: '#2b2b2b',
+              padding: 4,
+              borderRadius: 2,
+              textAlign: 'center',
+              boxShadow: '0 0 12px 2px rgba(252, 208, 118, 0.6)',
+              '&:hover': {
+                boxShadow: '0 0 20px 5px rgba(252, 208, 118, 0.9)',
+              },
+            }}
+          >
+            <Typography variant="h4" mb={3} fontWeight={600} color="white">
               Register
             </Typography>
-
+ 
             <TextField
-              className="auth-field"
               label="Name"
               name="name"
               value={name}
               onChange={handleChange}
               fullWidth
               margin="normal"
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
             />
-
             <TextField
-              className="auth-field"
               label="Age"
               name="age"
+              type="number"
               value={age}
               onChange={handleChange}
               fullWidth
               margin="normal"
-              type="number"
               inputProps={{ min: 16 }}
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
             />
-
-            <FormControl fullWidth margin="normal" className="auth-field">
+            <FormControl fullWidth margin="normal">
               <InputLabel id="gender-label" sx={{ color: 'white' }}>
                 Gender
               </InputLabel>
@@ -168,58 +190,89 @@ const Register: React.FC = () => {
                 <MenuItem value="preferNotToSay">Prefer not to say</MenuItem>
               </Select>
             </FormControl>
-
+ 
             <TextField
-              className="auth-field"
               label="Email"
               name="email"
+              type="email"
               value={email}
               onChange={handleChange}
               fullWidth
               margin="normal"
-              type="email"
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
             />
-
             <TextField
-              className="auth-field"
               label="Password"
               name="password"
+              type="password"
               value={password}
               onChange={handleChange}
               fullWidth
               margin="normal"
-              type="password"
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
             />
-
             <TextField
-              className="auth-field"
               label="Confirm Password"
               name="confirmPassword"
+              type="password"
               value={confirmPassword}
               onChange={handleChange}
               fullWidth
               margin="normal"
-              type="password"
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
             />
-
-            {error && (
-              <Typography variant="body2" color="error" mt={2}>
-                {error}
-              </Typography>
-            )}
-
-            <Button type="submit" fullWidth className="auth-button">
+ 
+            <Button
+              type="submit"
+              fullWidth
+              sx={{
+                mt: 3,
+                backgroundColor: '#FCD076',
+                color: '#2b2b2b',
+                fontWeight: 600,
+                '&:hover': {
+                  backgroundColor: '#e6b85f',
+                  boxShadow: '0 0 8px rgba(252, 208, 118, 0.8)',
+                },
+              }}
+            >
               Register
             </Button>
-
-            <Typography variant="body2" align="center" sx={{ mt: 4 }}>
+ 
+            <Box mt={2}>
+              {Array.isArray(error)
+                ? error.map((msg, index) => (
+                    <Typography key={index} variant="body2" color="error">
+                      {msg}
+                    </Typography>
+                  ))
+                : error && (
+                    <Typography variant="body2" color="error">
+                      {error}
+                    </Typography>
+                  )}
+            </Box>
+ 
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{ mt: 4, color: 'white' }}
+            >
               Already have an account?{' '}
               <Box
                 component="span"
-                className="auth-link"
+                sx={{
+                  color: '#FCD076',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
                 onClick={() => navigate('/login')}
               >
-                Log In
+                Sign in here
               </Box>
             </Typography>
           </Box>
@@ -229,5 +282,5 @@ const Register: React.FC = () => {
     </>
   );
 };
-
-export default Register;
+ 
+export default RegisterPage;
