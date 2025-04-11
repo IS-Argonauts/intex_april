@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import './ContainerFilter.css'; // Assuming you have some CSS for styling
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 function ContainerFilter({
   selectedContainers,
   setSelectedContainers,
@@ -14,7 +16,7 @@ function ContainerFilter({
     const fetchContainers = async () => {
       try {
         const response = await fetch(
-          'https://localhost:44307/Competition/GetContainerTypes',
+          `${BASE_URL}/Competition/GetContainerTypes`,
           {
             credentials: 'include'
           }

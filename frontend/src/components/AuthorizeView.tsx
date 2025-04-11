@@ -2,6 +2,7 @@ import React, { useState, useEffect, createContext } from 'react';
 import { Navigate } from 'react-router-dom';
 
 const UserContext = createContext<User | null>(null);
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 interface User {
   email: string;
@@ -43,7 +44,7 @@ function AuthorizeView(props: { children: React.ReactNode }) {
       }
     }
 
-    fetchWithRetry('https://localhost:44307/pingauth', {
+    fetchWithRetry(`${BASE_URL}/pingauth`, {
       method: 'GET',
       credentials: 'include',
     });
