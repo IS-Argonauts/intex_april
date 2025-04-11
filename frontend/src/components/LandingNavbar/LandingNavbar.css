@@ -4,7 +4,7 @@
   justify-content: space-between;
   background-color: #000;
   color: white;
-  padding: 1.00rem 2rem;
+  padding: 1rem 2rem;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -31,13 +31,13 @@
 }
 
 .hero-navbar-links a:hover {
-  color: #3b82f6; /* Tailwind blue-500 */
+  color: #ffffff !important; /* Tailwind blue-500 */
 }
 
 .hero-navbar-button {
-  background-color: #252525; /* slate-900 */
+  background-color: #1a1a1a !important; /* slate-900 */
   color: white;
-  padding: .75rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 9999px;
   font-weight: 700;
   text-decoration: none;
@@ -46,7 +46,7 @@
 }
 
 .hero-navbar-button:hover {
-  background-color: #383838; /* slate-800 */
+  background-color: #2a2a2a !important; /* slate-800 */
 }
 
 .hero-navbar-actions {
@@ -63,4 +63,8 @@
 
 .brand-name:hover {
   color: #c9cace; /* Subtle slate gray on hover */
+}
+
+.hero-navbar-button:visited {
+  color: white;
 }

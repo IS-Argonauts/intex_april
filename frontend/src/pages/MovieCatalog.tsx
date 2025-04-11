@@ -6,6 +6,10 @@ import {
   CardMedia,
   CircularProgress,
   IconButton,
+  InputLabel,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { MoviesTitle as Movie } from '../types/MoviesTitles';
 import MainNavbar from '../components/MainNavbar/MainNavbar';
@@ -14,7 +18,6 @@ import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import ClearIcon from '@mui/icons-material/Clear';
-import MovieFilters from '../components/MovieFilters';
 
 function useDebounce<T>(value: T, delay = 500): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -33,38 +36,29 @@ const MovieCatalog: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 400);
 
-  // 🎭 Genre filter state
-  const [genres] = useState<string[]>(['Action', 'Adventure', 'Anime', 'British','Comedies', 'Children', 
-                                        'Crime', 'Documentaries', 'Docuseries', 'Drama', 'Family Movies','Fantasy', 
-                                        'Horror', 'International', 'Kids', 'Language', 'Musicals', 'Nature', 
-                                        'Reality TV', 'Romantic', 'Spirituality', 'Thrillers']);
-  const [genre, setGenre] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [genres] = useState<string[]>([
+    'Action', 'Adventure', 'Anime', 'British', 'Comedies', 'Children',
+    'Crime', 'Documentaries', 'Docuseries', 'Drama', 'Family Movies', 'Fantasy',
+    'Horror', 'International', 'Kids', 'Language', 'Musicals', 'Nature',
+    'Reality TV', 'Romantic', 'Spirituality', 'Thrillers'
+  ]);
+  const [genre, setGenre] = useState<string | ''>('');
 
+  const navigate = useNavigate();
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
   const fetchedPages = useRef<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 🔄 Reset on search query change
   useEffect(() => {
     setMovies([]);
     setPage(1);
     fetchedPages.current.clear();
-  }, [debouncedSearch]);
+  }, [debouncedSearch, genre]);
 
-  // 🔄 Reset on genre change
-  useEffect(() => {
-    setMovies([]);
-    setPage(1);
-    fetchedPages.current.clear();
-  }, [genre]);
-
-
-  // 📡 Fetch movies with search param
   const fetchMovies = useCallback(async () => {
-    const key = `${page}-${debouncedSearch}`;
+    const key = `${page}-${debouncedSearch}-${genre}`;
     if (fetchedPages.current.has(key)) return;
 
     setLoading(true);
@@ -81,9 +75,8 @@ const MovieCatalog: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, genre]);
 
-  // 🔁 Infinite scroll
   useEffect(() => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
@@ -111,56 +104,102 @@ const MovieCatalog: React.FC = () => {
   return (
     <>
       <MainNavbar />
-      <Box sx={{ padding: 4 }}>
-      <div style={{ textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom>
-          Movie Catalog
-        </Typography>
-      </div>
-        {/* 🔍 Search Input */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: '#1f1f1f',
-            borderRadius: '24px',
-            padding: '4px 12px',
-            border: '1px solid #555',
-            width: '320px',
-            margin: 'auto',
-          }}
-        >
-          <SearchIcon sx={{ color: '#aaa', mr: 1 }} />
-          <InputBase
-            placeholder="Search movies..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            fullWidth
-            inputRef={inputRef}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') inputRef.current?.blur();
-            }}
+      <Box
+        sx={{
+          padding: 4,
+          backgroundColor: '#000',
+          minHeight: '100vh',
+        }}
+      >
+        {/* Title & Filters */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+          <Typography
+            variant="h3"
+            gutterBottom
             sx={{
-              color: '#fff',
-              '& input::placeholder': {
-                color: '#aaa',
-              },
+              color: 'white',
+              fontWeight: 600,
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
             }}
-          />
-          {searchQuery && (
-            <IconButton
-              size="small"
-              onClick={() => setSearchQuery('')}
-              sx={{ color: '#aaa', ml: 1 }}
-            >
-              <ClearIcon fontSize="small" />
-            </IconButton>
-          )}
-        </Box>
-        <br />
-        <MovieFilters genres={genres} genre={genre || ''} setGenre={setGenre} />
+          >
+            Movie Catalog
+          </Typography>
 
-        <br /><br />
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: 2,
+              mt: 1,
+            }}
+          >
+            {/* Search Bar */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#1f1f1f',
+                borderRadius: '28px',
+                padding: '8px 20px',
+                border: '2px solid #777',
+                width: { xs: '100%', sm: '500px', md: '700px' },
+              }}
+            >
+              <SearchIcon sx={{ color: '#aaa', mr: 1 }} />
+              <InputBase
+                placeholder="Search movies..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                fullWidth
+                inputRef={inputRef}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') inputRef.current?.blur();
+                }}
+                sx={{
+                  color: '#fff',
+                  fontSize: '1.1rem',
+                  '& input::placeholder': {
+                    color: '#aaa',
+                    fontSize: '1.05rem',
+                  },
+                }}
+              />
+              {searchQuery && (
+                <IconButton
+                  size="small"
+                  onClick={() => setSearchQuery('')}
+                  sx={{ color: '#aaa', ml: 1 }}
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
+
+            {/* Genre Dropdown */}
+            <FormControl sx={{ minWidth: 200 }} size="medium">
+              <InputLabel sx={{ color: 'white', fontSize: '1.4rem' }}>Genre</InputLabel>
+              <Select
+                value={genre}
+                onChange={(e) => setGenre(e.target.value)}
+                label="Genre"
+                sx={{
+                  color: 'white',
+                  backgroundColor: '#1f1f1f',
+                  fontSize: '1.1rem',
+                  '& .MuiSvgIcon-root': { color: 'white' },
+                }}
+              >
+                <MenuItem value="">All Genres</MenuItem>
+                {genres.map((g) => (
+                  <MenuItem key={g} value={g}>
+                    {g}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
 
         {error && <Typography color="error">{error}</Typography>}
 
@@ -193,17 +232,12 @@ const MovieCatalog: React.FC = () => {
                 component="img"
                 image={movie.posterUrl}
                 alt={movie.title}
-                sx={{
-                  height: '100%',
-                  width: '100%',
-                  objectFit: 'cover',
-                }}
+                sx={{ height: '100%', width: '100%', objectFit: 'cover' }}
                 onError={(e) => {
                   const target = e.currentTarget;
                   target.onerror = null;
                   target.src =
                     'https://mlworkspace9652940464.blob.core.windows.net/movieposters/placeHolder.jpg';
-
                   setBrokenImages((prev) => new Set(prev).add(String(movie.showId)));
                 }}
               />
@@ -225,7 +259,6 @@ const MovieCatalog: React.FC = () => {
                   {movie.title}
                 </Box>
               )}
-
               <Box
                 sx={{
                   position: 'absolute',
