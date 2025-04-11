@@ -8,26 +8,32 @@ export interface Movie {
   // extend with other fields from your MoviesTitleDTO if needed
 }
 
-type RecommendationType = 'item' | 'user' | 'hybrid';
+type RecommendationType = 'item' | 'user' | 'hybrid' | 'enriched';
 
 /**
  * Fetches full movie recommendations using external recommendation system
  * and your .NET backend to retrieve movie details.
  * 
  * @param movieId - A numeric movie ID (e.g., "5003")
- * @param type - Type of recommendation: 'item', 'user', or 'hybrid'
+ * @param type - Type of recommendation: 'item', 'user', 'hybrid', or 'enriched'
  * @returns Full movie data for the recommended items
  */
 export const fetchMovieRecommendations = async (
   movieId: string,
   type: RecommendationType
 ): Promise<Movie[]> => {
-  const externalEndpoint = `https://cine-niche-api-414.onrender.com/recommend/${type}/s${movieId}`;
-
   try {
-    // 1. Hit external recommender API
-    const externalResponse = await axios.get(externalEndpoint);
-    const rawRecs: string[] = externalResponse.data?.recommendations ?? [];
+    let rawRecs: string[] = [];
+
+    if (type === 'enriched') {
+      // 1. Hit external enriched recommender API
+      const externalResponse = await axios.get(`https://cine-niche-api-414.onrender.com/recommend/enriched/${movieId}`);
+      rawRecs = externalResponse.data?.recommendations?.map((rec: any) => rec.show_id) ?? [];
+    } else {
+      // 1. Hit external recommender API
+      const externalResponse = await axios.get(`https://cine-niche-api-414.onrender.com/recommend/${type}/s${movieId}`);
+      rawRecs = externalResponse.data?.recommendations ?? [];
+    }
 
     // 2. Clean up movie IDs (remove the 's' prefix)
     const cleanedIds = rawRecs

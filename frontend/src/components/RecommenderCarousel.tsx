@@ -9,7 +9,7 @@ import { fetchMovieRecommendations } from '../api/recommender';
 
 interface RecommendationCarouselProps {
   title: string;
-  recommenderType: 'user' | 'item' | 'hybrid';
+  recommenderType: 'user' | 'item' | 'hybrid' | 'enriched';
   genre?: string;
   director?: string;
   searchQuery?: string;
@@ -24,14 +24,14 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
   searchQuery,
   moviesOverride,
 }) => {
-  const [movies, setMovies] = useState<Movie[]>(moviesOverride ?? []);
-  const [loading, setLoading] = useState(!moviesOverride);
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
   const scrollAmount = 260 + 16;
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    if (moviesOverride) {
+    if (moviesOverride && moviesOverride.length > 0) {
       setMovies(moviesOverride);
       setLoading(false);
       return;

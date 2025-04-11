@@ -31,23 +31,15 @@ const HomePage: React.FC = () => {
     const userId = localStorage.getItem('userId') ?? '5003';
 
     const loadAll = async () => {
-      const [likes, drama, action, horror, trending, critical, myList] = await Promise.all([
+      const [likes, trending, critical] = await Promise.all([
         fetchMovieRecommendations(userId, 'user'),
-        fetchMovieRecommendations(userId, 'user'),
-        fetchMovieRecommendations(userId, 'user'),
-        fetchMovieRecommendations(userId, 'user'),
-        fetchMovieRecommendations(userId, 'item'),
-        fetchMovieRecommendations(userId, 'hybrid'),
-        fetchMovieRecommendations(userId, 'user')
+        fetchMovieRecommendations('5004', 'hybrid'),
+        fetchMovieRecommendations('6000', 'item'),
       ]);
 
       setLikesMovies(likes);
-      setDramaMovies(drama);
-      setActionMovies(action);
-      setHorrorMovies(horror);
       setTrendingMovies(trending);
       setCriticallyMovies(critical);
-      setMyListMovies(myList);
     };
 
     loadAll();
@@ -59,12 +51,8 @@ const HomePage: React.FC = () => {
       <HeroBanner name="" imageUrl="/tabs-bg.jpg" />
 
       <RecommenderCarousel title="Based on Your Likes" recommenderType="user" moviesOverride={likesMovies} />
-      <RecommenderCarousel title="Drama Movies For You" recommenderType="user" moviesOverride={dramaMovies} />
-      <RecommenderCarousel title="Action Movies For You" recommenderType="user" moviesOverride={actionMovies} />
-      <RecommenderCarousel title="Horror Movies For You" recommenderType="user" moviesOverride={horrorMovies} />
       <RecommenderCarousel title="Trending Now" recommenderType="item" moviesOverride={trendingMovies} />
       <RecommenderCarousel title="Critically Acclaimed" recommenderType="hybrid" moviesOverride={criticallyMovies} />
-      <RecommenderCarousel title="Your List" recommenderType="user" moviesOverride={myListMovies} />
 
       <Footer />
     </>
