@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 
 interface MovieFiltersProps {
   genres: string[];
@@ -13,11 +12,8 @@ const MovieFilters: React.FC<MovieFiltersProps> = ({
   genre,
   setGenre,
 }) => {
-  const navigate = useNavigate();
-
   return (
     <Box sx={{ px: 3, mb: 5 }}>
-
       <Box
         sx={{
           display: 'flex',
@@ -43,7 +39,8 @@ const MovieFilters: React.FC<MovieFiltersProps> = ({
               color: genre === g ? '#111' : '#fff',
               border: genre === g ? '2px solid white' : '2px solid transparent',
               transition: '0.2s',
-              boxShadow: genre === g ? '0 0 10px rgba(255,255,255,0.4)' : 'none',
+              boxShadow:
+                genre === g ? '0 0 10px rgba(255,255,255,0.4)' : 'none',
               fontSize: '18px',
               minWidth: '140px',
               textAlign: 'center',
@@ -55,7 +52,6 @@ const MovieFilters: React.FC<MovieFiltersProps> = ({
             {g}
           </Box>
         ))}
-
       </Box>
     </Box>
   );

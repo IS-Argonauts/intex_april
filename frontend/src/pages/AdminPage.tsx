@@ -1,12 +1,19 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Button, IconButton } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  IconButton,
+  CircularProgress,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MainNavbar from '../components/MainNavbar/MainNavbar';
-import CinePagination from '../components/CinePagination';
 import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import ClearIcon from '@mui/icons-material/Clear';
+
+import MainNavbar from '../components/MainNavbar/MainNavbar';
+import CinePagination from '../components/CinePagination';
 import { deleteMovie, fetchAllMovies } from '../api/movies';
 import { MoviesTitle as Movie, MoviesTitle } from '../types/MoviesTitles';
 import NewMovieForm from '../components/NewMovieForm';
@@ -91,13 +98,14 @@ function AdminPage() {
               }}
               onClick={() => {
                 setShowForm(true);
-                setEditingMovie(null); // 👈 close edit form if open
+                setEditingMovie(null);
               }}
             >
               ➕ Add New Movie
             </Button>
           )}
         </Box>
+
         {showForm && (
           <Box sx={{ mb: 3 }}>
             <NewMovieForm
@@ -177,90 +185,99 @@ function AdminPage() {
           🎬 Total Movies: {totalCount}
         </Typography>
 
-        {movies.map((movie) => (
-          <Box
-            key={movie.showId}
-            sx={{
-              backgroundColor: '#121212',
-              color: 'white',
-              padding: 2,
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              marginBottom: 2,
-            }}
-          >
-            <img
-              src={movie.posterUrl}
-              alt={movie.title}
-              style={{
-                width: 80,
-                height: 120,
-                objectFit: 'cover',
-                borderRadius: 4,
-              }}
-              onError={(e) => {
-                e.currentTarget.src =
-                  'https://mlworkspace9652940464.blob.core.windows.net/movieposters/placeHolder.jpg';
-              }}
-            />
-
-            <Box sx={{ flexGrow: 1 }}>
-              <Typography variant="subtitle1">{movie.title}</Typography>
-              <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                {movie.releaseYear ?? 'Year N/A'} ·{' '}
-                {movie.director ?? 'Unknown'}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton
-                sx={{
-                  color: '#FCD076',
-                  '&:hover': {
-                    backgroundColor: 'rgba(252, 208, 118, 0.1)',
-                  },
-                }}
-                onClick={() => setEditingMovie(movie)}
-              >
-                <EditIcon />
-              </IconButton>
-
-              <IconButton
-                color="error"
-                onClick={async () => {
-                  if (movie.id === undefined || movie.id === null) {
-                    console.error('Movie ID is missing');
-                    return;
-                  }
-
-                  const confirmDelete = window.confirm(
-                    `Are you sure you want to delete "${movie.title}"?`
-                  );
-                  if (!confirmDelete) return;
-
-                  try {
-                    await deleteMovie(movie.id);
-                    // Refresh the list
-                    const data = await fetchAllMovies(
-                      pageNum,
-                      pageSize,
-                      debouncedSearch
-                    );
-                    setMovies(data.movies);
-                    setTotalCount(data.totalCount);
-                    setTotalPages(Math.ceil(data.totalCount / pageSize));
-                  } catch (error) {
-                    console.error('Failed to delete movie:', error);
-                  }
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Box>
+        {loading ? (
+          <Box sx={{ textAlign: 'center', mt: 6 }}>
+            <CircularProgress sx={{ color: '#FCD076' }} />
+            <Typography sx={{ mt: 2, color: '#FCD076' }}>
+              Loading movies...
+            </Typography>
           </Box>
-        ))}
+        ) : movies.length === 0 ? (
+          <Typography sx={{ color: '#f44336', textAlign: 'center', mt: 4 }}>
+            No movies found.
+          </Typography>
+        ) : (
+          movies.map((movie) => (
+            <Box
+              key={movie.showId}
+              sx={{
+                backgroundColor: '#121212',
+                color: 'white',
+                padding: 2,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                marginBottom: 2,
+              }}
+            >
+              <img
+                src={movie.posterUrl}
+                alt={movie.title}
+                style={{
+                  width: 80,
+                  height: 120,
+                  objectFit: 'cover',
+                  borderRadius: 4,
+                }}
+                onError={(e) => {
+                  e.currentTarget.src =
+                    'https://mlworkspace9652940464.blob.core.windows.net/movieposters/placeHolder.jpg';
+                }}
+              />
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="subtitle1">{movie.title}</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                  {movie.releaseYear ?? 'Year N/A'} ·{' '}
+                  {movie.director ?? 'Unknown'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <IconButton
+                  sx={{
+                    color: '#FCD076',
+                    '&:hover': {
+                      backgroundColor: 'rgba(252, 208, 118, 0.1)',
+                    },
+                  }}
+                  onClick={() => setEditingMovie(movie)}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton
+                  color="error"
+                  onClick={async () => {
+                    if (movie.id == null) {
+                      console.error('Movie ID is missing');
+                      return;
+                    }
+
+                    const confirmDelete = window.confirm(
+                      `Are you sure you want to delete "${movie.title}"?`
+                    );
+                    if (!confirmDelete) return;
+
+                    try {
+                      await deleteMovie(movie.id);
+                      const data = await fetchAllMovies(
+                        pageNum,
+                        pageSize,
+                        debouncedSearch
+                      );
+                      setMovies(data.movies);
+                      setTotalCount(data.totalCount);
+                      setTotalPages(Math.ceil(data.totalCount / pageSize));
+                    } catch (error) {
+                      console.error('Failed to delete movie:', error);
+                    }
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            </Box>
+          ))
+        )}
 
         <CinePagination
           currentPage={pageNum}

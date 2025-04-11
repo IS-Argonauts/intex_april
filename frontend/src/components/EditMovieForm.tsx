@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MoviesTitle } from '../types/MoviesTitles';
-import { addMovie, updateMovie } from '../api/movies';
+import { updateMovie } from '../api/movies';
 
 interface EditMovieFormProps {
   onSuccess: () => void;
