@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RootkitAuth.API.Data;
+using RootkitAuth.API.Models;
 using RootkitAuth.API.Services;
 using Google.Apis.Auth;
 
@@ -11,9 +12,24 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+//builder.Services.AddControllers()
+//    .AddJsonOptions(options =>
+//    {
+//        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//        options.JsonSerializerOptions.WriteIndented = true; // Optional: make it pretty
+//    });
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/auth/login"; // Update this to your actual login path
+});
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // 🔥 Add this
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
     });
@@ -22,9 +38,11 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
 // Database Contexts
 builder.Services.AddDbContext<MoviesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("CompetitionConnection")));
+
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
@@ -49,9 +67,20 @@ builder.Services.AddAuthentication(options =>
 // Authorization
 builder.Services.AddAuthorization();
 
+
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<MoviesDbContext>()
+    .AddDefaultTokenProviders();
+
+
+builder.Services.AddAuthorization();
+
+
+
 // Email Services
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, Microsoft.AspNetCore.Identity.UI.Services.NoOpEmailSender>();
-builder.Services.AddTransient<IEmailSender<IdentityUser>, EmailSenderAdapter>();
+builder.Services.AddTransient<IEmailSender<ApplicationUser>, EmailSenderAdapter>();
 
 // Identity Claims Customization
 builder.Services.Configure<IdentityOptions>(options =>
@@ -60,7 +89,9 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.ClaimsIdentity.UserNameClaimType = ClaimTypes.Email;
 });
 
-builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, CustomUserClaimsPrincipalFactory>();
+//builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, CustomUserClaimsPrincipalFactory>();
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomUserClaimsPrincipalFactory>();
+
 
 // Cookie Settings
 builder.Services.ConfigureApplicationCookie(options =>
@@ -68,7 +99,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.Name = ".AspNetCore.Identity.Application";
-    options.LoginPath = "/login";
+    options.LoginPath = "/auth/login";
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
@@ -112,14 +143,37 @@ app.UseAuthorization();
 app.MapGet("/", () => Results.Ok("Welcome to the public home page!"));
 
 app.MapControllers();
-app.MapIdentityApi<IdentityUser>();
+//app.MapIdentityApi<IdentityUser>();
+
+//app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> signInManager) =>
+//{
+//    await signInManager.SignOutAsync();
+
+//    // Ensure authentication cookie is removed
+//    context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
+//    {
+//        HttpOnly = true,
+//        Secure = true,
+//        SameSite = SameSiteMode.None
+//    });
+
 
 // Logout
-app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> signInManager) =>
+//app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> signInManager) =>
+//{
+    //await signInManager.SignOutAsync();
+
+//    return Results.Ok(new { message = "Logout successful" });
+//}).RequireAuthorization();
+app.MapIdentityApi<ApplicationUser>();
+
+app.MapPost("/logout", async (HttpContext context, SignInManager<ApplicationUser> signInManager) =>
 {
     await signInManager.SignOutAsync();
 
-    context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
+    // Ensure authentication cookie is removed
+
+  context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
     {
         HttpOnly = true,
         Secure = true,
@@ -130,6 +184,7 @@ app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> s
 }).RequireAuthorization();
 
 // Ping authenticated
+
 app.MapGet("/pingauth", (ClaimsPrincipal user) =>
 {
     if (!(user.Identity?.IsAuthenticated ?? false))
@@ -177,3 +232,4 @@ app.MapPost("/google-login", async (
 });
 
 app.Run();
+
