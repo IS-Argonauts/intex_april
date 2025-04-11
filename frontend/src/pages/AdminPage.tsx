@@ -39,14 +39,23 @@ function AdminPage() {
 
   useEffect(() => {
     const loadMovies = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
         const data = await fetchAllMovies(pageNum, pageSize, debouncedSearch);
+
+        const calculatedTotalPages = Math.ceil(data.totalCount / pageSize);
+
+        if (pageNum > calculatedTotalPages && calculatedTotalPages > 0) {
+          setPageNum(calculatedTotalPages); // Triggers fetch again with correct page
+          return;
+        }
+
         setMovies(data.movies);
         setTotalCount(data.totalCount);
-        setTotalPages(Math.ceil(data.totalCount / pageSize));
+        setTotalPages(calculatedTotalPages);
       } catch (err) {
-        setError((err as Error).message);
+        console.error('Error loading movies:', err);
+        setError('Failed to load movies');
       } finally {
         setLoading(false);
       }
@@ -272,6 +281,11 @@ function AdminPage() {
             setPageNum(1);
           }}
         />
+        {!loading && movies.length === 0 && (
+          <Typography sx={{ color: '#f44336', textAlign: 'center', mt: 4 }}>
+            No movies found on this page.
+          </Typography>
+        )}
       </Box>
     </>
   );

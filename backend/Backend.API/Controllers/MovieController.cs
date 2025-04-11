@@ -85,11 +85,10 @@ public class MovieController : ControllerBase
 
     [HttpGet("AllMovies")]
     public IActionResult GetAllMovies(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 100,
-        [FromQuery] string? searchQuery = null,
-        [FromQuery] string? genre = null
-        )
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 100,
+    [FromQuery] string? searchQuery = null,
+    [FromQuery] string? genre = null)
     {
         const string baseUrl = "https://mlworkspace9652940464.blob.core.windows.net/movieposters";
 
@@ -102,21 +101,14 @@ public class MovieController : ControllerBase
         if (!string.IsNullOrEmpty(searchQuery))
         {
             var searchLower = searchQuery.ToLower();
-
-            // 🔍 Check for exact match
-            var exactMatch = _context.MoviesTitles
-                .FirstOrDefault(m => m.Title.ToLower() == searchLower);
+            var exactMatch = _context.MoviesTitles.FirstOrDefault(m => m.Title.ToLower() == searchLower);
 
             if (exactMatch != null)
             {
-                var result = new List<MoviesTitleDTO> {
-                    exactMatch.ToDto()
-                };
-
+                var result = new List<MoviesTitleDTO> { exactMatch.ToDto() };
                 return Ok(new { movies = result, totalCount = 1 });
             }
 
-            // 🔎 Apply partial match filter
             query = query.Where(m => m.Title.ToLower().Contains(searchLower));
         }
 
@@ -128,6 +120,12 @@ public class MovieController : ControllerBase
 
         var totalCount = query.Count();
 
+        // 🧠 Fix: If skip is too high, return an empty list
+        if (skip >= totalCount && totalCount > 0)
+        {
+            return Ok(new { movies = new List<MoviesTitleDTO>(), totalCount });
+        }
+
         var movies = query
             .Skip(skip)
             .Take(pageSize)
@@ -135,8 +133,10 @@ public class MovieController : ControllerBase
             .Select(m => m.ToDto())
             .ToList();
 
+
         return Ok(new { movies, totalCount });
     }
+
 
     [HttpGet("AllUsers")]
     public IActionResult GetAllUsers()
