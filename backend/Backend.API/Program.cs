@@ -101,7 +101,8 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            policy.WithOrigins("https://mango-beach-0bd45480f.6.azurestaticapps.net")
+            policy.WithOrigins("https://mango-beach-0bd45480f.6.azurestaticapps.net",
+                    "https://mlworkspace9652940464.blob.core.windows.net")
                 .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
