@@ -24,15 +24,32 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | string[]>('');
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
-    const { name, value } = e.target as HTMLInputElement;
+  const handleChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | React.ChangeEvent<{ name?: string; value: unknown }>
+      | any
+  ) => {
+    const { name, value } = e.target;
     switch (name) {
-      case 'email': setEmail(value); break;
-      case 'name': setName(value); break;
-      case 'age': setAge(value); break;
-      case 'gender': setGender(value); break;
-      case 'password': setPassword(value); break;
-      case 'confirmPassword': setConfirmPassword(value); break;
+      case 'email':
+        setEmail(value);
+        break;
+      case 'name':
+        setName(value);
+        break;
+      case 'age':
+        setAge(value);
+        break;
+      case 'gender':
+        setGender(value);
+        break;
+      case 'password':
+        setPassword(value);
+        break;
+      case 'confirmPassword':
+        setConfirmPassword(value);
+        break;
     }
   };
 
@@ -83,7 +100,9 @@ const RegisterPage: React.FC = () => {
       if (!response.ok) {
         const data = await response.json();
         if (Array.isArray(data.errors)) {
-          setError(data.errors.map((e: any) => e.description || JSON.stringify(e)));
+          setError(
+            data.errors.map((e: any) => e.description || JSON.stringify(e))
+          );
         } else {
           throw new Error(data.message || 'Error registering.');
         }
@@ -132,11 +151,39 @@ const RegisterPage: React.FC = () => {
               Register
             </Typography>
 
-            <TextField label="Name" name="name" value={name} onChange={handleChange} fullWidth margin="normal" InputLabelProps={{ style: { color: 'white' } }} InputProps={{ style: { color: 'white' } }} />
-            <TextField label="Age" name="age" type="number" value={age} onChange={handleChange} fullWidth margin="normal" inputProps={{ min: 16 }} InputLabelProps={{ style: { color: 'white' } }} InputProps={{ style: { color: 'white' } }} />
+            <TextField
+              label="Name"
+              name="name"
+              value={name}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
+            />
+            <TextField
+              label="Age"
+              name="age"
+              type="number"
+              value={age}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              inputProps={{ min: 16 }}
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
+            />
             <FormControl fullWidth margin="normal">
-              <InputLabel id="gender-label" sx={{ color: 'white' }}>Gender</InputLabel>
-              <Select labelId="gender-label" name="gender" value={gender} onChange={handleChange} sx={{ color: 'white' }}>
+              <InputLabel id="gender-label" sx={{ color: 'white' }}>
+                Gender
+              </InputLabel>
+              <Select
+                labelId="gender-label"
+                name="gender"
+                value={gender}
+                onChange={handleChange}
+                sx={{ color: 'white' }}
+              >
                 <MenuItem value="">Select Gender</MenuItem>
                 <MenuItem value="male">Male</MenuItem>
                 <MenuItem value="female">Female</MenuItem>
@@ -144,27 +191,87 @@ const RegisterPage: React.FC = () => {
               </Select>
             </FormControl>
 
-            <TextField label="Email" name="email" type="email" value={email} onChange={handleChange} fullWidth margin="normal" InputLabelProps={{ style: { color: 'white' } }} InputProps={{ style: { color: 'white' } }} />
-            <TextField label="Password" name="password" type="password" value={password} onChange={handleChange} fullWidth margin="normal" InputLabelProps={{ style: { color: 'white' } }} InputProps={{ style: { color: 'white' } }} />
-            <TextField label="Confirm Password" name="confirmPassword" type="password" value={confirmPassword} onChange={handleChange} fullWidth margin="normal" InputLabelProps={{ style: { color: 'white' } }} InputProps={{ style: { color: 'white' } }} />
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
+            />
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              value={password}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
+            />
+            <TextField
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ style: { color: 'white' } }}
+              InputProps={{ style: { color: 'white' } }}
+            />
 
-            <Button type="submit" fullWidth sx={{ mt: 3, backgroundColor: '#FCD076', color: '#2b2b2b', fontWeight: 600, '&:hover': { backgroundColor: '#e6b85f', boxShadow: '0 0 8px rgba(252, 208, 118, 0.8)' } }}>
+            <Button
+              type="submit"
+              fullWidth
+              sx={{
+                mt: 3,
+                backgroundColor: '#FCD076',
+                color: '#2b2b2b',
+                fontWeight: 600,
+                '&:hover': {
+                  backgroundColor: '#e6b85f',
+                  boxShadow: '0 0 8px rgba(252, 208, 118, 0.8)',
+                },
+              }}
+            >
               Register
             </Button>
 
             <Box mt={2}>
-              {Array.isArray(error) ? (
-                error.map((msg, index) => (
-                  <Typography key={index} variant="body2" color="error">{msg}</Typography>
-                ))
-              ) : (
-                error && <Typography variant="body2" color="error">{error}</Typography>
-              )}
+              {Array.isArray(error)
+                ? error.map((msg, index) => (
+                    <Typography key={index} variant="body2" color="error">
+                      {msg}
+                    </Typography>
+                  ))
+                : error && (
+                    <Typography variant="body2" color="error">
+                      {error}
+                    </Typography>
+                  )}
             </Box>
 
-            <Typography variant="body2" align="center" sx={{ mt: 4, color: 'white' }}>
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{ mt: 4, color: 'white' }}
+            >
               Already have an account?{' '}
-              <Box component="span" sx={{ color: '#FCD076', textDecoration: 'underline', cursor: 'pointer', fontWeight: 500 }} onClick={() => navigate('/login')}>
+              <Box
+                component="span"
+                sx={{
+                  color: '#FCD076',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+                onClick={() => navigate('/login')}
+              >
                 Sign in here
               </Box>
             </Typography>

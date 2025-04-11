@@ -22,10 +22,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/auth/login"; // Update this to your actual login path
-});
+//builder.Services.ConfigureApplicationCookie(options =>
+//{
+//    options.LoginPath = "/auth/login"; // Update this to your actual login path
+//});
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -48,9 +48,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
 
 // Identity Setup
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+//builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+//    .AddEntityFrameworkStores<ApplicationDbContext>()
+//    .AddDefaultTokenProviders();
 
 // Google Authentication
 builder.Services.AddAuthentication(options =>
@@ -197,8 +197,8 @@ app.MapGet("/pingauth", (ClaimsPrincipal user) =>
 // Google Login Endpoint
 app.MapPost("/google-login", async (
     HttpContext context,
-    SignInManager<IdentityUser> signInManager,
-    UserManager<IdentityUser> userManager) =>
+    SignInManager<ApplicationUser> signInManager,
+    UserManager<ApplicationUser> userManager) =>
 {
     var json = await context.Request.ReadFromJsonAsync<Dictionary<string, string>>();
     var credential = json?["credential"];
@@ -208,13 +208,13 @@ app.MapPost("/google-login", async (
 
     try
     {
-        var payload = await GoogleJsonWebSignature.ValidateAsync(credential);
+        var payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(credential);
         var email = payload.Email;
 
         var user = await userManager.FindByEmailAsync(email);
         if (user == null)
         {
-            user = new IdentityUser { UserName = email, Email = email };
+            user = new ApplicationUser { UserName = email, Email = email };
             var createResult = await userManager.CreateAsync(user);
             if (!createResult.Succeeded)
                 return Results.BadRequest("Failed to create user");
@@ -230,6 +230,7 @@ app.MapPost("/google-login", async (
         return Results.BadRequest("Invalid Google login");
     }
 });
+
 
 app.Run();
 
