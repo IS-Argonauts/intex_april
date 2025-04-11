@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MoviesTitle as Movie } from '../../types/MoviesTitles';
 import { fetchMovieByShowId } from '../../api/movies';
+import Rating from '../Rating'; // ✅ import the component
 import './MovieDetailsPage.css';
 
 const MovieInfoSection: React.FC = () => {
   const { id } = useParams();
   const [movie, setMovie] = useState<Movie | null>(null);
-  const [userRating, setUserRating] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -29,11 +29,6 @@ const MovieInfoSection: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleRatingClick = (rating: number) => {
-    setUserRating(rating);
-    console.log(`User rated: ${rating} stars`);
-  };
-
   if (error) return <div className="not-found">{error} 🫠</div>;
   if (loading || !movie) return <div className="loading">Loading...</div>;
 
@@ -53,7 +48,9 @@ const MovieInfoSection: React.FC = () => {
       <div className="movie-info">
         <h1 className="movie-title">{movie.title}</h1>
         <p className="movie-subinfo">
+
           {movie.genre} • {movie.releaseYear} • Directed by {movie.director || 'Unknown'}
+
         </p>
 
         <div className="button-group">
@@ -67,15 +64,12 @@ const MovieInfoSection: React.FC = () => {
         </div>
 
         <div className="star-rating">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span
-              key={star}
-              onClick={() => handleRatingClick(star)}
-              className={`star ${star <= userRating ? 'active' : ''}`}
-            >
-              ★
-            </span>
-          ))}
+          {/* ✅ Use the reusable Rating component */}
+          <Rating
+            movieId={movie.showId!}
+            userId={1} // TODO: Replace with actual logged-in user's ID
+            editable={true}
+          />
         </div>
       </div>
     </div>

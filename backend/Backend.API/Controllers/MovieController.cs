@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Scripting;
 using RootkitAuth.API.Data;
 using RootkitAuth.API.Extensions;
 using RootkitAuth.API.Models;
@@ -26,6 +27,61 @@ public class MovieController : ControllerBase
         var ratings = _context.MoviesRatings.ToList();
         return Ok(ratings);
     }
+
+    [HttpGet("AverageRating/{showId}")]
+    public IActionResult GetAverageRating(string showId)
+    {
+        var ratings = _context.MoviesRatings
+            .Where(r => r.ShowId == showId && r.Rating.HasValue)
+            .Select(r => r.Rating!.Value)
+            .ToList();
+
+        if (!ratings.Any())
+            return Ok(0); // or return NotFound() if you want
+
+        double average = ratings.Average();
+        return Ok(average);
+    }
+
+
+    [HttpPost("RateMovie")]
+    public IActionResult RateMovie([FromBody] MovieRatingDto dto)
+    {
+        if (dto.Rating < 1 || dto.Rating > 5)
+            return BadRequest("Rating must be between 1 and 5");
+
+        var existing = _context.MoviesRatings
+            .FirstOrDefault(r => r.UserId == dto.UserId && r.ShowId == dto.ShowId);
+
+        if (existing != null)
+        {
+            existing.Rating = dto.Rating;
+        }
+        else
+        {
+            _context.MoviesRatings.Add(new MoviesRating
+            {
+                UserId = dto.UserId,
+                ShowId = dto.ShowId,
+                Rating = dto.Rating
+            });
+        }
+
+        _context.SaveChanges();
+        return Ok();
+    }
+
+    [HttpGet("Rating/{userId}/{showId}")]
+    public IActionResult GetUserRating(int userId, string showId)
+    {
+        var rating = _context.MoviesRatings
+            .FirstOrDefault(r => r.UserId == userId && r.ShowId == showId);
+
+        return rating != null ? Ok(rating.Rating) : Ok(0); // or NotFound()
+    }
+
+
+
 
     [HttpGet("AllMovies")]
     public IActionResult GetAllMovies(
@@ -96,6 +152,31 @@ public class MovieController : ControllerBase
         return Ok(user);
     }
     
+    [HttpPost("register")]
+    public IActionResult Register([FromBody] RegisterUserDTO dto)
+    {
+        if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.Password))
+            return BadRequest(new { message = "Email and password are required." });
+
+        if (_context.MoviesUsers.Any(u => u.Email == dto.Email))
+            return Conflict(new { message = "Email already exists." });
+
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+        var user = new MoviesUser
+        {
+            Email = dto.Email,
+            Password = hashedPassword,
+            Role = "user" // 👈 secure default
+        };
+
+        _context.MoviesUsers.Add(user);
+        _context.SaveChanges();
+
+        return Ok(new { message = "Registration successful!" });
+    }
+
+
     [HttpGet("SingleMovie")]
     public IActionResult GetSingleMovie([FromQuery] int id)
     {

@@ -160,7 +160,11 @@ const LoginPage: React.FC = () => {
               </Typography>
             )}
 
-            <Typography variant="body2" align="center" sx={{ mt: 4 }}>
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{ mt: 4, color: 'white' }}
+            >
               Don’t have an account?{' '}
               <Box
                 component="span"
