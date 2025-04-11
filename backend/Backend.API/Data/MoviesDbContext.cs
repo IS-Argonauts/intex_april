@@ -5,7 +5,7 @@ using RootkitAuth.API.Models;
 
 namespace RootkitAuth.API.Data;
 
-public class MoviesDbContext : DbContext
+public class MoviesDbContext : IdentityDbContext<ApplicationUser>
 {
     public MoviesDbContext(DbContextOptions<MoviesDbContext> options) : base(options)
     {
