@@ -13,7 +13,6 @@ import AdminPage from './pages/AdminPage';
 import HomePage from './pages/HomePage';
 // import AdminPage from './pages/AdminPage';
 
-
 function App() {
   return (
     <>
@@ -24,33 +23,11 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
-          <Route path="/home" element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-            } 
-          />
-          <Route path="/catalog" element={
-            <ProtectedRoute>
-              <MovieCatalog />
-            </ProtectedRoute>
-            } 
-          />
-          <Route path="/movies/:id" element={
-            <ProtectedRoute>
-              <MovieDetailsPage />
-            </ProtectedRoute>
-            } />
-          <Route path="/member" element={
-            <ProtectedRoute>
-              <MemberInfo />
-            </ProtectedRoute>
-            } />
-          <Route path="/admin" element={
-            <ProtectedRoute>
-              <AdminPage />
-            </ProtectedRoute>
-          } />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/catalog" element={<MovieCatalog />} />
+          <Route path="/movies/:id" element={<MovieDetailsPage />} />
+          <Route path="/member" element={<MemberInfo />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </Router>
       <CookieConsentBanner />
