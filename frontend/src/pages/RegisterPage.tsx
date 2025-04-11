@@ -14,8 +14,9 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/LandingNavbar/LandingNavbar';
 import Footer from '../components/Footer/Footer';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
- 
+//const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = 'https://intex2-a6d7e5dnave8hzd5.canadacentral-01.azurewebsites.net'; 
+
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');

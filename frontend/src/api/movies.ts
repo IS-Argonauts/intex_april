@@ -2,7 +2,8 @@ import { MoviesRating } from '../types/MoviesRating';
 import { MoviesTitle } from '../types/MoviesTitles';
 import { MoviesUser } from '../types/MoviesUser';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+//const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = 'https://intex2-a6d7e5dnave8hzd5.canadacentral-01.azurewebsites.net';
 
 // Fetch paginated + filtered list of movies
 export const fetchAllMovies = async (

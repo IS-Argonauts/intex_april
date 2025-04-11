@@ -6,7 +6,8 @@ export interface AuthUser {
 
 export const isAuthenticated = async (): Promise<boolean> => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/pingauth`, {
+      const BASE_URL = 'https://intex2-a6d7e5dnave8hzd5.canadacentral-01.azurewebsites.net';
+      const res = await fetch(`${BASE_URL}/pingauth`, {
         credentials: 'include',
       });
       return res.ok;
@@ -17,7 +18,8 @@ export const isAuthenticated = async (): Promise<boolean> => {
   
   export const logout = async (): Promise<boolean> => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/logout`, {
+      const BASE_URL = 'https://intex2-a6d7e5dnave8hzd5.canadacentral-01.azurewebsites.net';
+      const res = await fetch(`${BASE_URL}/logout`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

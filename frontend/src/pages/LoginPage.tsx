@@ -16,8 +16,8 @@ import Header from '../components/BasicHeader';
 import Footer from '../components/Footer/Footer';
 import { fetchUserByEmail } from '../api/users';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-console.log(BASE_URL);
+//const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = 'https://intex2-a6d7e5dnave8hzd5.canadacentral-01.azurewebsites.net';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');

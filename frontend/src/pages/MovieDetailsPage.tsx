@@ -8,7 +8,8 @@ import RecommenderCarousel from '../components/RecommenderCarousel';
 import { MoviesTitle as Movie } from '../types/MoviesTitles';
 import { fetchMovieRecommendations } from '../api/recommender';
 
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL; // change for production
+//const BACKEND_URL = import.meta.env.VITE_API_BASE_URL; // change for production
+const BACKEND_URL = 'https://intex2-a6d7e5dnave8hzd5.canadacentral-01.azurewebsites.net';
 
 const MovieDetailsPage: React.FC = () => {
   const navigate = useNavigate();
