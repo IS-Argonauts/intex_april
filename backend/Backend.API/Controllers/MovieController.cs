@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RootkitAuth.API.Data;
 using RootkitAuth.API.Extensions;
 using RootkitAuth.API.Models;
@@ -28,59 +29,67 @@ public class MovieController : ControllerBase
     }
 
     [HttpGet("AllMovies")]
-    public IActionResult GetAllMovies(
+    public async Task<IActionResult> GetAllMovies(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 100,
         [FromQuery] string? searchQuery = null,
         [FromQuery] string? genre = null
-        )
+    )
     {
         const string baseUrl = "https://mlworkspace9652940464.blob.core.windows.net/movieposters";
 
         if (page < 1) page = 1;
         if (pageSize > 1000) pageSize = 1000;
 
-        var skip = (page - 1) * pageSize;
         var query = _context.MoviesTitles.AsQueryable();
 
+        // Apply search with exact match priority
         if (!string.IsNullOrEmpty(searchQuery))
         {
             var searchLower = searchQuery.ToLower();
 
-            // 🔍 Check for exact match
-            var exactMatch = _context.MoviesTitles
-                .FirstOrDefault(m => m.Title.ToLower() == searchLower);
-
-            if (exactMatch != null)
-            {
-                var result = new List<MoviesTitleDTO> {
-                    exactMatch.ToDto()
-                };
-
-                return Ok(new { movies = result, totalCount = 1 });
-            }
-
-            // 🔎 Apply partial match filter
-            query = query.Where(m => m.Title.ToLower().Contains(searchLower));
+            // Exact matches come first
+            query = query
+                .Where(m => m.Title.ToLower().Contains(searchLower))
+                .OrderByDescending(m => m.Title.ToLower() == searchLower)
+                .ThenBy(m => m.Title);
         }
 
+        // Apply genre filter
         if (!string.IsNullOrEmpty(genre))
         {
             var genreLower = genre.ToLower();
             query = query.Where(m => m.Genre != null && m.Genre.ToLower().Contains(genreLower));
         }
 
-        var totalCount = query.Count();
+        // Total count after filtering
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        if (page > totalPages) page = totalPages == 0 ? 1 : totalPages;
 
-        var movies = query
+        var skip = (page - 1) * pageSize;
+
+        var movies = await query
             .Skip(skip)
             .Take(pageSize)
-            .AsEnumerable()
-            .Select(m => m.ToDto())
-            .ToList();
+            .ToListAsync();
 
-        return Ok(new { movies, totalCount });
+        var movieDTOs = movies.Select(m =>
+        {
+            var dto = m.ToDto();
+            dto.PosterUrl = $"{baseUrl}/{Uri.EscapeDataString(CleanTitle(m.Title))}.jpg";
+            return dto;
+        }).ToList();
+
+        return Ok(new
+        {
+            movies = movieDTOs,
+            totalCount,
+            page,
+            pageSize
+        });
     }
+
 
     [HttpGet("AllUsers")]
     public IActionResult GetAllUsers()

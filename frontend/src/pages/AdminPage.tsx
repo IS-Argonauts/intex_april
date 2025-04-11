@@ -1,57 +1,87 @@
-import { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Button, IconButton } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { useState, useEffect, useRef } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  IconButton,
+  InputBase,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon,
+} from '@mui/icons-material';
+
 import MainNavbar from '../components/MainNavbar/MainNavbar';
 import CinePagination from '../components/CinePagination';
-import SearchIcon from '@mui/icons-material/Search';
-import InputBase from '@mui/material/InputBase';
-import ClearIcon from '@mui/icons-material/Clear';
 import { deleteMovie, fetchAllMovies } from '../api/movies';
-import { MoviesTitle as Movie, MoviesTitle } from '../types/MoviesTitles';
+import { MoviesTitle as Movie } from '../types/MoviesTitles';
 import NewMovieForm from '../components/NewMovieForm';
-import EditMovieForm from '../components/EditMovieForm';
+import '../components/AdminPage.css';
 
 function useDebounce<T>(value: T, delay = 500): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
-
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedValue(value), delay);
     return () => clearTimeout(handler);
   }, [value, delay]);
-
   return debouncedValue;
 }
 
 function AdminPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [pageSize, setPageSize] = useState<number>(10);
-  const [pageNum, setPageNum] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [totalCount, setTotalCount] = useState<number>(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [pageNum, setPageNum] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 400);
   const inputRef = useRef<HTMLInputElement>(null);
+
   const [showForm, setShowForm] = useState(false);
-  const [editingMovie, setEditingMovie] = useState<MoviesTitle | null>(null);
+  const [editingMovieId, setEditingMovieId] = useState<number | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [movieToDelete, setMovieToDelete] = useState<Movie | null>(null);
+
+  const refreshMovies = async () => {
+    const data = await fetchAllMovies(pageNum, pageSize, debouncedSearch);
+  
+    const normalized = data.movies.map((movie) => ({
+      ...movie,
+      id: Number(movie.id ?? movie.showId) || 0, // fallback to 0 if bad
+    }));
+    
+  
+    if (normalized.length === 0 && pageNum > 1) {
+      setPageNum((prev) => prev - 1);
+      return;
+    }
+  
+    setMovies(normalized); // ✅ Make sure `setMovies` is defined above
+    setTotalCount(data.totalCount);
+    setTotalPages(Math.ceil(data.totalCount / pageSize));
+  };
+  
 
   useEffect(() => {
     const loadMovies = async () => {
       try {
         setLoading(true);
-        const data = await fetchAllMovies(pageNum, pageSize, debouncedSearch);
-        setMovies(data.movies);
-        setTotalCount(data.totalCount);
-        setTotalPages(Math.ceil(data.totalCount / pageSize));
+        await refreshMovies();
       } catch (err) {
         setError((err as Error).message);
       } finally {
         setLoading(false);
       }
     };
-
     loadMovies();
   }, [pageNum, pageSize, debouncedSearch]);
 
@@ -59,7 +89,7 @@ function AdminPage() {
     return (
       <>
         <MainNavbar />
-        <Box sx={{ padding: 4 }}>
+        <Box className="admin-container">
           <Typography color="error">Error: {error}</Typography>
         </Box>
       </>
@@ -69,82 +99,75 @@ function AdminPage() {
   return (
     <>
       <MainNavbar />
-      <Box sx={{ padding: 4 }}>
+      <Box className="admin-container">
+        {/* Header + Button */}
         <Box
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            mb: 3,
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 1,
           }}
         >
-          <Typography variant="h4">Admin Movie Manager</Typography>
+          <Typography
+            className="admin-title"
+            component="h1"
+            variant="h3"
+            sx={{ color: 'white', fontWeight: 'bold', fontSize: '3rem' }}
+          >
+            Admin Movie Manager
+          </Typography>
+
           {!showForm && (
             <Button
               variant="contained"
+              className="add-movie-button"
+              onClick={() => setShowForm(true)}
               sx={{
                 backgroundColor: '#FCD076',
-                color: '#000000',
+                color: '#000',
+                fontWeight: 'bold',
                 '&:hover': {
                   backgroundColor: '#e6ba64',
                 },
-              }}
-              onClick={() => {
-                setShowForm(true);
-                setEditingMovie(null); // 👈 close edit form if open
               }}
             >
               ➕ Add New Movie
             </Button>
           )}
         </Box>
+
+        {/* Total Movies */}
+        <Typography
+          sx={{
+            color: '#FCD076',
+            fontSize: '1.6rem',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            mt: 1,
+            mb: 3,
+          }}
+        >
+          🎬 Total Movies: {totalCount}
+        </Typography>
+
+        {/* Add Form */}
         {showForm && (
           <Box sx={{ mb: 3 }}>
             <NewMovieForm
               onSuccess={() => {
                 setShowForm(false);
-                fetchAllMovies(pageNum, pageSize, debouncedSearch).then(
-                  (data) => {
-                    setMovies(data.movies);
-                    setTotalCount(data.totalCount);
-                    setTotalPages(Math.ceil(data.totalCount / pageSize));
-                  }
-                );
+                refreshMovies();
               }}
               onCancel={() => setShowForm(false)}
             />
           </Box>
         )}
 
-        {editingMovie && (
-          <EditMovieForm
-            movie={editingMovie}
-            onCancel={() => setEditingMovie(null)}
-            onSuccess={() => {
-              setEditingMovie(null);
-              fetchAllMovies(pageNum, pageSize, debouncedSearch).then(
-                (data) => {
-                  setMovies(data.movies);
-                  setTotalCount(data.totalCount);
-                  setTotalPages(Math.ceil(data.totalCount / pageSize));
-                }
-              );
-            }}
-          />
-        )}
-
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: '#1f1f1f',
-            borderRadius: '24px',
-            padding: '4px 12px',
-            border: '1px solid #555',
-            width: '320px',
-            margin: 'auto',
-          }}
-        >
+        {/* Search Bar */}
+        <Box className="admin-search">
           <SearchIcon sx={{ color: '#aaa', mr: 1 }} />
           <InputBase
             placeholder="Search movies..."
@@ -173,105 +196,112 @@ function AdminPage() {
           )}
         </Box>
 
-        <Typography sx={{ color: '#FCD076', mb: 2 }}>
-          🎬 Total Movies: {totalCount}
-        </Typography>
-
+        {/* Movie List */}
         {movies.map((movie) => (
-          <Box
-            key={movie.showId}
-            sx={{
-              backgroundColor: '#121212',
-              color: 'white',
-              padding: 2,
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              marginBottom: 2,
-            }}
-          >
-            <img
-              src={movie.posterUrl}
-              alt={movie.title}
-              style={{
-                width: 80,
-                height: 120,
-                objectFit: 'cover',
-                borderRadius: 4,
-              }}
-              onError={(e) => {
-                e.currentTarget.src =
-                  'https://mlworkspace9652940464.blob.core.windows.net/movieposters/placeHolder.jpg';
-              }}
-            />
-
-            <Box sx={{ flexGrow: 1 }}>
-              <Typography variant="subtitle1">{movie.title}</Typography>
-              <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                {movie.releaseYear ?? 'Year N/A'} ·{' '}
-                {movie.director ?? 'Unknown'}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton
-                sx={{
-                  color: '#FCD076',
-                  '&:hover': {
-                    backgroundColor: 'rgba(252, 208, 118, 0.1)',
-                  },
+          <Box key={movie.id} className="admin-movie-row">
+            {editingMovieId === movie.id ? (
+              <NewMovieForm
+                initialData={movie}
+                onCancel={() => setEditingMovieId(null)}
+                onSuccess={() => {
+                  setEditingMovieId(null);
+                  refreshMovies();
                 }}
-                onClick={() => setEditingMovie(movie)}
-              >
-                <EditIcon />
-              </IconButton>
-
-              <IconButton
-                color="error"
-                onClick={async () => {
-                  if (movie.id === undefined || movie.id === null) {
-                    console.error('Movie ID is missing');
-                    return;
-                  }
-
-                  const confirmDelete = window.confirm(
-                    `Are you sure you want to delete "${movie.title}"?`
-                  );
-                  if (!confirmDelete) return;
-
-                  try {
-                    await deleteMovie(movie.id);
-                    // Refresh the list
-                    const data = await fetchAllMovies(
-                      pageNum,
-                      pageSize,
-                      debouncedSearch
-                    );
-                    setMovies(data.movies);
-                    setTotalCount(data.totalCount);
-                    setTotalPages(Math.ceil(data.totalCount / pageSize));
-                  } catch (error) {
-                    console.error('Failed to delete movie:', error);
-                  }
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Box>
+              />
+            ) : (
+              <>
+                <img
+                  src={movie.posterUrl}
+                  alt={movie.title}
+                  className="admin-poster"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      'https://mlworkspace9652940464.blob.core.windows.net/movieposters/placeHolder.jpg';
+                  }}
+                />
+                <Box className="admin-movie-info">
+                  <Typography variant="subtitle1">{movie.title}</Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                    {movie.releaseYear ?? 'Year N/A'} ·{' '}
+                    {movie.director ?? 'Unknown'}
+                  </Typography>
+                </Box>
+                <Box className="admin-actions">
+                  <IconButton
+                    sx={{ color: 'white' }}
+                    onClick={() => setEditingMovieId(movie.id!)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    className="delete-button"
+                    onClick={() => {
+                      setMovieToDelete(movie);
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              </>
+            )}
           </Box>
         ))}
 
+        {/* Pagination */}
         <CinePagination
           currentPage={pageNum}
           totalPages={totalPages}
           pageSize={pageSize}
-          onPageChange={setPageNum}
+          onPageChange={(nextPage) => {
+            // Clamp so it never exceeds totalPages - 1
+            if (nextPage >= totalPages) return; // 👈 hard stop at last page
+            setPageNum(nextPage);
+          }}
           onPageSizeChange={(newSize) => {
             setPageSize(newSize);
             setPageNum(1);
           }}
         />
+
+        {/* Delete Dialog */}
+        <Dialog
+          open={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+        >
+          <DialogTitle>❌ Confirm Deletion</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete{' '}
+              <strong>"{movieToDelete?.title}"</strong>?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setShowDeleteDialog(false)}
+              variant="outlined"
+              color="secondary"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!movieToDelete?.id) return;
+
+                try {
+                  await deleteMovie(movieToDelete.id);
+                  setShowDeleteDialog(false);
+                  setMovieToDelete(null);
+                  refreshMovies();
+                } catch (err) {
+                  console.error('Failed to delete movie:', err);
+                }
+              }}
+            >
+              Confirm Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </>
   );
