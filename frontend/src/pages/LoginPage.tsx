@@ -9,9 +9,10 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import '../components/Login.css';
 
-import Header from '../components/LandingNavbar/LandingNavbar';
+import Header from '../components/BasicHeader';
 import Footer from '../components/Footer/Footer';
 
 const LoginPage: React.FC = () => {
@@ -31,26 +32,31 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    const loginUrl = rememberme
-      ? 'https://localhost:44307/login?useCookies=true'
-      : 'https://localhost:44307/login?useSessionCookies=true';
+    const loginUrl = 'https://localhost:44307/login?useSessionCookies=true';
 
     try {
-      const response = await fetch(loginUrl, {
+      const loginRes = await fetch(loginUrl, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          rememberMe: rememberme,
+        }),
       });
 
-      let data = null;
-      const contentLength = response.headers.get('content-length');
-      if (contentLength && parseInt(contentLength, 10) > 0) {
-        data = await response.json();
+      if (!loginRes.ok) {
+        const errorData = await loginRes.json();
+        throw new Error(errorData?.message || 'Invalid email or password.');
       }
 
-      if (!response.ok) {
-        throw new Error(data?.message || 'Invalid email or password.');
+      const authCheck = await fetch('https://localhost:44307/pingauth', {
+        credentials: 'include',
+      });
+
+      if (!authCheck.ok) {
+        throw new Error('Authenticated, but session not confirmed.');
       }
 
       navigate('/home');
@@ -60,65 +66,62 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
+    setError('');
+    try {
+      const res = await fetch('https://localhost:44307/google-login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      });
+
+      if (!res.ok) throw new Error('Google login failed');
+
+      const authCheck = await fetch('https://localhost:44307/pingauth', {
+        credentials: 'include',
+      });
+
+      if (!authCheck.ok)
+        throw new Error('Session not confirmed after Google login');
+
+      navigate('/home');
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      setError(error.message || 'Google login failed');
+    }
+  };
+
   return (
     <>
       <Header />
-      <Box
-        sx={{
-          minHeight: '120vh',
-          backgroundColor: '#1f1f1f',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          pt: 6,
-          pb: 6,
-        }}
-      >
+      <Box className="auth-container">
         <Container maxWidth="sm">
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            sx={{
-              backgroundColor: '#2b2b2b',
-              padding: 4,
-              borderRadius: 2,
-              textAlign: 'center',
-              boxShadow: '0 0 12px 2px rgba(252, 208, 118, 0.6)',
-              transition: 'box-shadow 0.3s ease-in-out',
-              '&:hover': {
-                boxShadow: '0 0 20px 5px rgba(252, 208, 118, 0.9)',
-              },
-            }}
-          >
-            <Typography variant="h4" mb={3} fontWeight={600} color="white">
+          <Box component="form" className="auth-box" onSubmit={handleSubmit}>
+            <Typography variant="h4" mb={3} fontWeight={600}>
               Sign In
             </Typography>
 
             <TextField
+              className="auth-field"
               label="Email"
               name="email"
               type="email"
               variant="outlined"
               fullWidth
-              margin="normal"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              InputLabelProps={{ style: { color: 'white' } }}
-              InputProps={{ style: { color: 'white' } }}
             />
 
             <TextField
+              className="auth-field"
               label="Password"
               name="password"
               type="password"
               variant="outlined"
               fullWidth
-              margin="normal"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              InputLabelProps={{ style: { color: 'white' } }}
-              InputProps={{ style: { color: 'white' } }}
             />
 
             <FormControlLabel
@@ -136,26 +139,26 @@ const LoginPage: React.FC = () => {
               sx={{ color: 'white', textAlign: 'left', mt: 1 }}
             />
 
-            <Button
-              type="submit"
-              fullWidth
-              sx={{
-                mt: 2,
-                backgroundColor: '#FCD076',
-                color: '#2b2b2b',
-                fontWeight: 600,
-                '&:hover': {
-                  backgroundColor: '#e6b85f',
-                  boxShadow: '0 0 8px rgba(252, 208, 118, 0.8)',
-                },
-              }}
-            >
+            <Button type="submit" fullWidth className="auth-button">
               Sign In
             </Button>
 
-            <Typography variant="body2" color="error" mt={2}>
-              {error}
-            </Typography>
+            <Box mt={3} textAlign="center">
+              <Typography variant="body1" mb={1}>
+                or
+              </Typography>
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => setError('Google login failed')}
+                useOneTap
+              />
+            </Box>
+
+            {error && (
+              <Typography variant="body2" color="error" mt={2}>
+                {error}
+              </Typography>
+            )}
 
             <Typography
               variant="body2"
@@ -165,12 +168,7 @@ const LoginPage: React.FC = () => {
               Don’t have an account?{' '}
               <Box
                 component="span"
-                sx={{
-                  color: '#FCD076',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                }}
+                className="auth-link"
                 onClick={() => navigate('/register')}
               >
                 Sign up here

@@ -8,7 +8,8 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const fetchAllMovies = async (
   page: number,
   pageSize: number,
-  searchQuery?: string
+  searchQuery?: string,
+  genre?: string
 ): Promise<{ movies: MoviesTitle[]; totalCount: number }> => {
   try {
     const params = new URLSearchParams({
@@ -18,6 +19,10 @@ export const fetchAllMovies = async (
 
     if (searchQuery?.trim()) {
       params.append('searchQuery', searchQuery.trim());
+    }
+
+    if (genre) {
+      params.append('genre', genre);
     }
 
     const url = `${BASE_URL}/Movie/AllMovies?${params.toString()}`;

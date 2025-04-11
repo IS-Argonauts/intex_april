@@ -2,14 +2,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MoviesTitle as Movie } from '../types/MoviesTitles';
 import MovieCardSkeleton from './MovieCardSkeleton';
 import MovieCard from './MovieCard';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, IconButton } from '@mui/material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { fetchMovieRecommendations } from '../api/recommender';
 
 interface RecommendationCarouselProps {
   title: string;
-  recommenderType: string;
+  recommenderType: 'user' | 'item' | 'hybrid';
   genre?: string;
   director?: string;
   searchQuery?: string;
+  moviesOverride?: Movie[];
 }
 
 const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
@@ -18,38 +22,27 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
   genre,
   director,
   searchQuery,
+  moviesOverride,
 }) => {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [movies, setMovies] = useState<Movie[]>(moviesOverride ?? []);
+  const [loading, setLoading] = useState(!moviesOverride);
   const carouselRef = useRef<HTMLDivElement>(null);
   const scrollAmount = 260 + 16;
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      const userId = localStorage.getItem('userId');
-      if (!userId) return;
+    if (moviesOverride) {
+      setMovies(moviesOverride);
+      setLoading(false);
+      return;
+    }
 
-      const queryParams = new URLSearchParams({
-        type: recommenderType,
-        userId,
-      });
+    const userId = localStorage.getItem('userId') ?? '5003';
 
-      if (genre) queryParams.append('genre', genre);
-      if (director) queryParams.append('director', director);
-      if (searchQuery) queryParams.append('search', searchQuery);
-
+    const fetchFromAPI = async () => {
       try {
-        const res = await fetch(`/api/recommendations?${queryParams.toString()}`);
-        if (!res.ok) throw new Error('Failed to fetch recommendations');
-
-        const data = await res.json();
-        const normalized = data.map((movie: any) => ({
-          ...movie,
-          id: Number(movie.id),
-        }));
-
-        setMovies(normalized);
+        const data = await fetchMovieRecommendations(userId, recommenderType);
+        setMovies(data);
       } catch (error) {
         console.error('Recommendation fetch error:', error);
       } finally {
@@ -57,8 +50,8 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
       }
     };
 
-    fetchRecommendations();
-  }, [recommenderType, genre, director, searchQuery]);
+    fetchFromAPI();
+  }, [recommenderType, genre, director, searchQuery, moviesOverride]);
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (!carouselRef.current) return;
@@ -74,26 +67,37 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
         {title}
       </Typography>
 
-      <Box
-        ref={carouselRef}
-        sx={{
-          display: 'flex',
-          overflowX: 'auto',
-          gap: 2,
-          scrollbarWidth: 'none',
-          '&::-webkit-scrollbar': { display: 'none' },
-        }}
-      >
-        {loading
-          ? Array.from({ length: 5 }).map((_, i) => <MovieCardSkeleton key={i} />)
-          : movies.map((movie) => (
-              <MovieCard
-                key={movie.showId}
-                movie={movie}
-                brokenImages={brokenImages}
-                setBrokenImages={setBrokenImages}
-              />
-            ))}
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <IconButton onClick={() => handleScroll('left')}>
+          <ChevronLeftIcon />
+        </IconButton>
+
+        <Box
+          ref={carouselRef}
+          sx={{
+            display: 'flex',
+            overflowX: 'auto',
+            gap: 2,
+            scrollbarWidth: 'none',
+            flexGrow: 1,
+            '&::-webkit-scrollbar': { display: 'none' },
+          }}
+        >
+          {loading
+            ? Array.from({ length: 5 }).map((_, i) => <MovieCardSkeleton key={i} />)
+            : movies.map((movie) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  brokenImages={brokenImages}
+                  setBrokenImages={setBrokenImages}
+                />
+              ))}
+        </Box>
+
+        <IconButton onClick={() => handleScroll('right')}>
+          <ChevronRightIcon />
+        </IconButton>
       </Box>
     </Box>
   );

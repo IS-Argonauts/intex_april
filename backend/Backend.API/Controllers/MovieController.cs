@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.Http.Headers;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Scripting;
 using RootkitAuth.API.Data;
@@ -83,8 +84,12 @@ public class MovieController : ControllerBase
 
 
     [HttpGet("AllMovies")]
-    public IActionResult GetAllMovies([FromQuery] int page = 1, [FromQuery] int pageSize = 100,
-        [FromQuery] string? searchQuery = null)
+    public IActionResult GetAllMovies(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 100,
+        [FromQuery] string? searchQuery = null,
+        [FromQuery] string? genre = null
+        )
     {
         const string baseUrl = "https://mlworkspace9652940464.blob.core.windows.net/movieposters";
 
@@ -115,6 +120,12 @@ public class MovieController : ControllerBase
             query = query.Where(m => m.Title.ToLower().Contains(searchLower));
         }
 
+        if (!string.IsNullOrEmpty(genre))
+        {
+            var genreLower = genre.ToLower();
+            query = query.Where(m => m.Genre != null && m.Genre.ToLower().Contains(genreLower));
+        }
+
         var totalCount = query.Count();
 
         var movies = query
@@ -134,6 +145,13 @@ public class MovieController : ControllerBase
         return Ok(users);
     }
 
+    [HttpGet("SingleUser")]
+    public IActionResult GetSingleUser([FromQuery] string email)
+    {
+        var user = _context.MoviesUsers.FirstOrDefault(u => u.Email == email);
+        return Ok(user);
+    }
+    
     [HttpPost("register")]
     public IActionResult Register([FromBody] RegisterUserDTO dto)
     {
@@ -181,6 +199,37 @@ public class MovieController : ControllerBase
         var count = _context.MoviesTitles.Count();
         return Ok(count);
     }
+    
+    [HttpGet("GetRecommendations")]
+    public IActionResult GetRecommendations([FromQuery] List<int> movieIds)
+    {
+        if (movieIds == null || movieIds.Count == 0)
+        {
+            return BadRequest("Please provide at least one movie ID.");
+        }
+
+        // Grab matching movies from DB
+        var matchedMovies = _context.MoviesTitles
+            .Where(m => m.Id != null && movieIds.Contains(m.Id.Value))
+            .ToList();
+
+        if (!matchedMovies.Any())
+        {
+            return NotFound("No movies found for the provided IDs.");
+        }
+
+        // Map to DTOs
+        const string posterBaseUrl = "https://mlworkspace9652940464.blob.core.windows.net/movieposters";
+        var movieDTOs = matchedMovies.Select(movie =>
+        {
+            var dto = movie.ToDto();
+            dto.PosterUrl = $"{posterBaseUrl}/{Uri.EscapeDataString(CleanTitle(movie.Title))}.jpg";
+            return dto;
+        }).ToList();
+
+        return Ok(movieDTOs);
+    }
+
 
     [HttpPost("AddMovie")]
     public IActionResult AddMovie([FromBody] MoviesTitleDTO movieDto)

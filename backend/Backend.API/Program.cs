@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using RootkitAuth.API.Data;
 using RootkitAuth.API.Models;
 using RootkitAuth.API.Services;
+using Google.Apis.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,17 +34,39 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
+// Swagger / OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 
+// Database Contexts
 builder.Services.AddDbContext<MoviesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("CompetitionConnection")));
 
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>  
-//    options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
 
-//builder.Services.AddIdentity< IdentityUser, IdentityRole>()
-//    .AddEntityFrameworkStores<ApplicationDbContext>()
-//    .AddDefaultTokenProviders();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
+
+// Identity Setup
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+// Google Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+});
+
+// Authorization
+builder.Services.AddAuthorization();
+
 
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -55,54 +78,46 @@ builder.Services.AddAuthorization();
 
 
 
-// builder.Services.AddIdentityApiEndpoints<IdentityUser>()  
-//     .AddEntityFrameworkStores<MoviesDbContext>();
-
+// Email Services
 builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, Microsoft.AspNetCore.Identity.UI.Services.NoOpEmailSender>();
 builder.Services.AddTransient<IEmailSender<ApplicationUser>, EmailSenderAdapter>();
 
+// Identity Claims Customization
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.ClaimsIdentity.UserIdClaimType = ClaimTypes.NameIdentifier;
-    options.ClaimsIdentity.UserNameClaimType = ClaimTypes.Email; // Ensure email is stored in claims
+    options.ClaimsIdentity.UserNameClaimType = ClaimTypes.Email;
 });
 
 //builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, CustomUserClaimsPrincipalFactory>();
 builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomUserClaimsPrincipalFactory>();
 
 
+// Cookie Settings
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.None; // Change after adding https for prod (change to Secure)
-    options.Cookie.Name = ".AspNetCore.Identity.Application";
-    options.LoginPath = "/login";
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-});
-
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.None; // Change after adding https for prod (change to Secure)
+    options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.Name = ".AspNetCore.Identity.Application";
     options.LoginPath = "/auth/login";
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         if (builder.Environment.IsDevelopment())
         {
-            policy.WithOrigins("http://localhost:3000") // ✅ Local testing
+            policy.WithOrigins("http://localhost:3000")
                 .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         }
         else
         {
-            policy.WithOrigins("https://proud-meadow-034f6310f.6.azurestaticapps.net") // 🌐 Prod domain
+            policy.WithOrigins("https://proud-meadow-034f6310f.6.azurestaticapps.net")
                 .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
@@ -112,7 +127,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Dev pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -142,6 +157,12 @@ app.MapControllers();
 //        SameSite = SameSiteMode.None
 //    });
 
+
+// Logout
+//app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> signInManager) =>
+//{
+    //await signInManager.SignOutAsync();
+
 //    return Results.Ok(new { message = "Logout successful" });
 //}).RequireAuthorization();
 app.MapIdentityApi<ApplicationUser>();
@@ -151,7 +172,8 @@ app.MapPost("/logout", async (HttpContext context, SignInManager<ApplicationUser
     await signInManager.SignOutAsync();
 
     // Ensure authentication cookie is removed
-    context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
+
+  context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
     {
         HttpOnly = true,
         Secure = true,
@@ -161,27 +183,53 @@ app.MapPost("/logout", async (HttpContext context, SignInManager<ApplicationUser
     return Results.Ok(new { message = "Logout successful" });
 }).RequireAuthorization();
 
-
+// Ping authenticated
 
 app.MapGet("/pingauth", (ClaimsPrincipal user) =>
 {
-    if (!user.Identity?.IsAuthenticated ?? false)
-    {
+    if (!(user.Identity?.IsAuthenticated ?? false))
         return Results.Unauthorized();
-    }
 
-    var email = user.FindFirstValue(ClaimTypes.Email) ?? "unknown@example.com"; // Ensure it's never null
-    return Results.Json(new { email = email }); // Return as JSON
+    var email = user.FindFirstValue(ClaimTypes.Email) ?? "unknown@example.com";
+    return Results.Json(new { email });
 }).RequireAuthorization();
 
-try
+// Google Login Endpoint
+app.MapPost("/google-login", async (
+    HttpContext context,
+    SignInManager<IdentityUser> signInManager,
+    UserManager<IdentityUser> userManager) =>
 {
-    app.Run();
-}
-catch (Exception ex)
-{
-    Console.WriteLine("🔥 Startup Exception:");
-    Console.WriteLine(ex.Message);
-    Console.WriteLine(ex.InnerException?.Message);
-    throw;
-}
+    var json = await context.Request.ReadFromJsonAsync<Dictionary<string, string>>();
+    var credential = json?["credential"];
+
+    if (string.IsNullOrEmpty(credential))
+        return Results.BadRequest("Missing credential");
+
+    try
+    {
+        var payload = await GoogleJsonWebSignature.ValidateAsync(credential);
+        var email = payload.Email;
+
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            user = new IdentityUser { UserName = email, Email = email };
+            var createResult = await userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+                return Results.BadRequest("Failed to create user");
+        }
+
+        await signInManager.SignInAsync(user, isPersistent: false);
+
+        return Results.Ok(new { message = "Signed in with Google", email });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Google login error: " + ex.Message);
+        return Results.BadRequest("Invalid Google login");
+    }
+});
+
+app.Run();
+

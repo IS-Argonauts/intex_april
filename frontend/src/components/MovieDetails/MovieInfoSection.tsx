@@ -48,8 +48,9 @@ const MovieInfoSection: React.FC = () => {
       <div className="movie-info">
         <h1 className="movie-title">{movie.title}</h1>
         <p className="movie-subinfo">
-          {movie.genre} • {movie.releaseYear} • Directed by{' '}
-          {movie.director || 'Unknown'}
+
+          {movie.genre} • {movie.releaseYear} • Directed by {movie.director || 'Unknown'}
+
         </p>
 
         <div className="button-group">

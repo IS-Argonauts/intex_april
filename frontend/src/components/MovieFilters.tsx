@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, IconButton, Tooltip } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import { Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 interface MovieFiltersProps {
@@ -57,36 +56,6 @@ const MovieFilters: React.FC<MovieFiltersProps> = ({
           </Box>
         ))}
 
-        {/* Search Button */}
-        <Tooltip
-            title={
-                <span style={{ fontFamily: '"Josefin Sans", sans-serif' }}>
-                Search by Title or Director
-                </span>
-            }
-            >
-          <IconButton
-            onClick={() => navigate('/catalog')}
-            sx={{
-              backgroundColor: '#2c2c2c',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'white',
-                color: '#111',
-              },
-              borderRadius: '16px',
-              p: 1.5,
-              ml: 2,
-              height: '48px',
-              width: '48px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <SearchIcon fontSize="medium" />
-          </IconButton>
-        </Tooltip>
       </Box>
     </Box>
   );
