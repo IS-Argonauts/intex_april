@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/LandingNavbar/LandingNavbar';
 import Footer from '../components/Footer/Footer';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
  
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -85,9 +85,9 @@ const RegisterPage: React.FC = () => {
       setError(validationError);
       return;
     }
- 
+  
     try {
-      const response = await fetch(`${BASE_URL}/auth/register`, {
+      const response = await fetch(`${BASE_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -98,26 +98,36 @@ const RegisterPage: React.FC = () => {
           password,
         }),
       });
- 
+  
+      const contentType = response.headers.get('content-type') || '';
+  
       if (!response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data.errors)) {
-          setError(
-            data.errors.map((e: any) => e.description || JSON.stringify(e))
-          );
+        let message: string | string[] = 'Error registering.';
+  
+        if (contentType.includes('application/json')) {
+          const data = await response.json();
+  
+          if (Array.isArray(data.errors)) {
+            message = data.errors.map((e: any) => e.description || JSON.stringify(e));
+          } else {
+            message = data.message || message;
+          }
         } else {
-          throw new Error(data.message || 'Error registering.');
+          const fallbackText = await response.text();
+          console.warn('Non-JSON error body:', fallbackText);
         }
+  
+        setError(message);
         return;
       }
- 
+  
       setError('');
       navigate('/login');
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error registering.');
+      console.error('Unexpected register error:', err);
+      setError(err.message || 'Unexpected error during registration.');
     }
-  };
+  };  
  
   return (
     <>

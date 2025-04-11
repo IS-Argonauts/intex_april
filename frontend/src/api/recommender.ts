@@ -46,8 +46,9 @@ export const fetchMovieRecommendations = async (
       },
       paramsSerializer: params => {
         return params.movieIds.map((id: number) => `movieIds=${id}`).join('&');
-      }
-    });
+      },
+      withCredentials: true // 👈 THIS IS CRITICAL
+    });    
 
     return backendResponse.data;
   } catch (error) {

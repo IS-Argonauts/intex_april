@@ -14,8 +14,10 @@ import '../components/Login.css';
 
 import Header from '../components/BasicHeader';
 import Footer from '../components/Footer/Footer';
+import { fetchUserByEmail } from '../api/users';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+console.log(BASE_URL);
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -28,16 +30,14 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-
+  
     if (!email || !password) {
       setError('Please fill in all fields.');
       return;
     }
-
-    const BASE_URL = import.meta.env.VITE_API_URL;
-
+  
     const loginUrl = `${BASE_URL}/login?useSessionCookies=true`;
-
+  
     try {
       const loginRes = await fetch(loginUrl, {
         method: 'POST',
@@ -49,26 +49,49 @@ const LoginPage: React.FC = () => {
           rememberMe: rememberme,
         }),
       });
-
+  
       if (!loginRes.ok) {
-        const errorData = await loginRes.json();
-        throw new Error(errorData?.message || 'Invalid email or password.');
+        const contentType = loginRes.headers.get('content-type') || '';
+        let message = 'Invalid email or password.';
+  
+        if (contentType.includes('application/json')) {
+          const errorData = await loginRes.json();
+          message = errorData?.message || message;
+        } else {
+          const text = await loginRes.text();
+          console.warn('Non-JSON login error:', text);
+        }
+  
+        throw new Error(message);
       }
-
-      const authCheck = await fetch(`${BASE_URL}/pingauth`, {
+  
+      // ✅ 1. Hit authCheck to get logged-in user's email
+      const authRes = await fetch(`${BASE_URL}/pingauth`, {
         credentials: 'include',
       });
-
-      if (!authCheck.ok) {
+  
+      if (!authRes.ok) {
         throw new Error('Authenticated, but session not confirmed.');
       }
-
+  
+      const authData = await authRes.json(); // should include: { email: "..." }
+  
+      // ✅ 2. Use the returned email to get user details
+      const userData = await fetchUserByEmail(authData.email);
+      if (userData) {
+        localStorage.setItem('userName', userData.name ?? '');
+        localStorage.setItem('userRole', userData.role ?? '');
+      }
+  
+      // ✅ 3. Optionally store email too
+      localStorage.setItem('userEmail', authData.email);
+  
       navigate('/home');
     } catch (error: any) {
       setError(error.message || 'Error logging in.');
       console.error('Login error:', error);
     }
-  };
+  };    
 
   const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
     setError('');

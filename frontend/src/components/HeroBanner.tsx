@@ -2,11 +2,18 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 
 interface HeroBannerProps {
-  name: string;
   imageUrl: string;
 }
 
-const HeroBanner: React.FC<HeroBannerProps> = ({ name, imageUrl }) => {
+const HeroBanner: React.FC<HeroBannerProps> = ({ imageUrl }) => {
+
+  const userName = localStorage.getItem('userName') ?? 'Guest';
+  if (userName == null) {
+    userName == 'Guest';
+  }
+
+  console.log('userName', userName);
+  
   return (
     <Box
       sx={{
@@ -18,7 +25,6 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ name, imageUrl }) => {
         mb: 5,
       }}
     >
-      {/* Overlay */}
       <Box
         sx={{
           position: 'absolute',
@@ -39,10 +45,13 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ name, imageUrl }) => {
             fontFamily: '"Josefin Sans", sans-serif',
           }}
         >
-          Welcome, {name}
+          Welcome!
         </Typography>
-        <Typography variant="h6" sx={{ mt: 1, fontFamily: '"Josefin Sans", sans-serif',  }}>
-          curated for your obsession
+        <Typography
+          variant="h6"
+          sx={{ mt: 1, fontFamily: '"Josefin Sans", sans-serif' }}
+        >
+          Cinema curated for your obsession
         </Typography>
       </Box>
     </Box>

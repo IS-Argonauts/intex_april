@@ -14,9 +14,6 @@ const HomePage: React.FC = () => {
   const [dramaMovies, setDramaMovies] = useState<Movie[]>([]);
   const [actionMovies, setActionMovies] = useState<Movie[]>([]);
   const [horrorMovies, setHorrorMovies] = useState<Movie[]>([]);
-  const [trendingMovies, setTrendingMovies] = useState<Movie[]>([]);
-  const [criticallyMovies, setCriticallyMovies] = useState<Movie[]>([]);
-  const [myListMovies, setMyListMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
     setGenres(['Action', 'Comedy', 'Drama', 'Horror', 'Romance']);
@@ -27,23 +24,17 @@ const HomePage: React.FC = () => {
     const userId = localStorage.getItem('userId') ?? '5003';
 
     const loadAll = async () => {
-      const [likes, drama, action, horror, trending, critical, myList] = await Promise.all([
+      const [likes, drama, action, horror] = await Promise.all([
         fetchMovieRecommendations(userId, 'user'),
-        fetchMovieRecommendations(userId, 'user'),
-        fetchMovieRecommendations(userId, 'user'),
-        fetchMovieRecommendations(userId, 'user'),
-        fetchMovieRecommendations(userId, 'item'),
-        fetchMovieRecommendations(userId, 'hybrid'),
-        fetchMovieRecommendations(userId, 'user')
+        fetchMovieRecommendations('5003', 'item'),
+        fetchMovieRecommendations('5004', 'item'),
+        fetchMovieRecommendations('5007', 'item'),
       ]);
 
       setLikesMovies(likes);
       setDramaMovies(drama);
       setActionMovies(action);
       setHorrorMovies(horror);
-      setTrendingMovies(trending);
-      setCriticallyMovies(critical);
-      setMyListMovies(myList);
     };
 
     loadAll();
@@ -52,15 +43,12 @@ const HomePage: React.FC = () => {
   return (
     <>
       <MainNavbar />
-      <HeroBanner name="" imageUrl="/tabs-bg.jpg" />
+      <HeroBanner imageUrl="/tabs-bg.jpg" />
 
       <RecommenderCarousel title="Based on Your Likes" recommenderType="user" moviesOverride={likesMovies} />
-      <RecommenderCarousel title="Drama Movies For You" recommenderType="user" moviesOverride={dramaMovies} />
-      <RecommenderCarousel title="Action Movies For You" recommenderType="user" moviesOverride={actionMovies} />
-      <RecommenderCarousel title="Horror Movies For You" recommenderType="user" moviesOverride={horrorMovies} />
-      <RecommenderCarousel title="Trending Now" recommenderType="item" moviesOverride={trendingMovies} />
-      <RecommenderCarousel title="Critically Acclaimed" recommenderType="hybrid" moviesOverride={criticallyMovies} />
-      <RecommenderCarousel title="Your List" recommenderType="user" moviesOverride={myListMovies} />
+      <RecommenderCarousel title="What We Think You'll Like" recommenderType="user" moviesOverride={dramaMovies} />
+      <RecommenderCarousel title="Similar to Your Favorite Directors" recommenderType="user" moviesOverride={actionMovies} />
+      <RecommenderCarousel title="Trending Among Cinephiles" recommenderType="user" moviesOverride={horrorMovies} />
 
       <Footer />
     </>
