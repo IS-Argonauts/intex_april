@@ -108,6 +108,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
+        policy.WithOrigins(
+            "https://calm-meadow-0cf6a3a1e.6.azurestaticapps.net/" // 💡 exact frontend URL
+        )
+        .AllowCredentials()
+        .AllowAnyHeader()
+        .AllowAnyMethod();
         if (builder.Environment.IsDevelopment())
         {
             policy.WithOrigins("http://localhost:3000")
